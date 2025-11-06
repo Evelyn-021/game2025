@@ -1,0 +1,44 @@
+{ "frames": {
+   "SelectPinky 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 664, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 664, "h": 512 },
+    "sourceSize": { "w": 664, "h": 512 },
+    "duration": 150
+   },
+   "SelectPinky 1.aseprite": {
+    "frame": { "x": 664, "y": 0, "w": 664, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 664, "h": 512 },
+    "sourceSize": { "w": 664, "h": 512 },
+    "duration": 100
+   },
+   "SelectPinky 2.aseprite": {
+    "frame": { "x": 1328, "y": 0, "w": 664, "h": 512 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 664, "h": 512 },
+    "sourceSize": { "w": 664, "h": 512 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.15.4-x64",
+  "image": "SelectPinky.png",
+  "format": "RGBA8888",
+  "size": { "w": 1992, "h": 512 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "P1", "from": 0, "to": 2, "direction": "forward", "color": "#000000ff" }
+  ],
+  "layers": [
+   { "name": "Select", "opacity": 255, "blendMode": "normal" },
+   { "name": "Personaje", "opacity": 255, "blendMode": "normal" }
+  ],
+  "slices": [
+  ]
+ }
+}

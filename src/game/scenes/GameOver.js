@@ -1,28 +1,28 @@
-import { Scene } from 'phaser';
+import { Scene } from "phaser";
 
-export class GameOver extends Scene
-{
-    constructor ()
-    {
-        super('GameOver');
-    }
+export class GameOver extends Scene {
+  constructor() {
+    super("GameOver");
+  }
 
-    create ()
-    {
-        this.cameras.main.setBackgroundColor(0xff0000);
+  init(data) {
+    this.winner = data.winner;
+  }
 
-        this.add.image(512, 384, 'background').setAlpha(0.5);
+  create() {
+    this.add.rectangle(512, 384, 1024, 768, 0x000000, 0.7);
+    this.add.text(512, 300, `${this.winner} gana 🎉`, {
+      fontSize: "48px",
+      color: "#ffffff"
+    }).setOrigin(0.5);
 
-        this.add.text(512, 384, 'Game Over', {
-            fontFamily: 'Arial Black', fontSize: 64, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5);
+    this.add.text(512, 450, "Presiona ENTER para volver al menú", {
+      fontSize: "24px",
+      color: "#dddddd"
+    }).setOrigin(0.5);
 
-        this.input.once('pointerdown', () => {
-
-            this.scene.start('MainMenu');
-
-        });
-    }
+    this.input.keyboard.once("keydown-ENTER", () => {
+      this.scene.start("MainMenu");
+    });
+  }
 }
