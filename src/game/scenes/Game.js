@@ -2,6 +2,8 @@ import { Scene } from "phaser";
 import Player from "../../classes/player.js";
 import Recolectables from "../../classes/recolectables.js";
 import { GameState } from "../state/GameState.js";
+import { events } from "../../classes/GameEvents.js"; // 🧩 para manejar eventos globales
+import AudioManager from "../../systems/AudioManager.js"; // 💿 Sonido
 
 export class Game extends Scene {
   constructor() {
@@ -9,8 +11,13 @@ export class Game extends Scene {
   }
 
   create() {
+    // === AUDIO MANAGER ===
+    this.audioManager = new AudioManager(this);
+    this.audioManager.add("collect"); // 🎵 Sonido de recolectar
+
     // === FONDO ===
-    this.bg = this.add.image(0, 0, "background2")
+    this.bg = this.add
+      .image(0, 0, "background2")
       .setOrigin(0, 0)
       .setScrollFactor(0.5)
       .setScale(1.1);
@@ -23,25 +30,33 @@ export class Game extends Scene {
 
     // === FÍSICAS DEL MUNDO ===
     this.physics.world.gravity.y = 800;
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true, true, true, false);
+    this.physics.world.setBounds(
+      0,
+      0,
+      map.widthInPixels,
+      map.heightInPixels,
+      true,
+      true,
+      true,
+      false
+    );
 
     // === CAPA DE OBJETOS ===
     const objetos = map.getObjectLayer("objetos").objects;
-    const spawn1 = objetos.find(o => o.name === "player");
-    const spawn2 = objetos.find(o => o.name === "player2");
+    const spawn1 = objetos.find((o) => o.name === "player");
+    const spawn2 = objetos.find((o) => o.name === "player2");
 
     // === CONTROLES ===
-    const keys1 = this.input.keyboard.createCursorKeys();
+    const keys1 = this.input.keyboard.createCursorKeys(); // Jugador 1
     const keys2 = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D
+      right: Phaser.Input.Keyboard.KeyCodes.D,
     });
 
     // === PERSONAJES SELECCIONADOS (desde GameState) ===
     const char1 = GameState.player1.character || "Pinky";
     const char2 = GameState.player2.character || "Lamb";
-
     console.log(`🎮 Jugador 1: ${char1}`);
     console.log(`🎮 Jugador 2: ${char2}`);
 
@@ -52,9 +67,20 @@ export class Game extends Scene {
     this.physics.add.collider(this.player1, this.plataformas);
     this.physics.add.collider(this.player2, this.plataformas);
 
+    // === CAJAS (una por jugador) ===
+    this.caja1 = this.physics.add.sprite(120, 560, "caja").setScale(1.1);
+    this.caja2 = this.physics.add.sprite(960, 560, "caja").setScale(1.1);
+    [this.caja1, this.caja2].forEach((caja) => {
+      caja.setImmovable(true);
+      caja.body.allowGravity = false;
+    });
+
     // === DONAS ===
     this.recolectables = new Recolectables(this, objetos);
-    this.recolectables.addColliders([this.player1, this.player2]);
+    this.recolectables.addColliders(
+      [this.player1, this.player2],
+      [this.caja1, this.caja2]
+    );
 
     // === CÁMARA ===
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -66,15 +92,33 @@ export class Game extends Scene {
     // === MODO DE JUEGO ===
     if (GameState.mode === "versus") this.initVersus(objetos);
     if (GameState.mode === "coop") this.initCoop(objetos);
+
+    // 🕒 Escuchar fin del tiempo (desde HUD)
+    events.on("time-up", () => {
+      const p1 = GameState.player1.donasRecolectadas || 0;
+      const p2 = GameState.player2.donasRecolectadas || 0;
+
+      let winner = "Empate";
+      if (p1 > p2) winner = "Jugador 1";
+      else if (p2 > p1) winner = "Jugador 2";
+
+      this.scene.stop("HUDScene");
+      this.scene.start("VictoryScene", { winner });
+    });
+
+    // 🔄 Limpieza al reiniciar
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      events.off("time-up");
+    });
   }
 
   // 🧩 Modo Versus
-  initVersus(objetos) {
+  initVersus() {
     console.log("Versus mode");
   }
 
   // 🧩 Modo Coop
-  initCoop(objetos) {
+  initCoop() {
     console.log("Coop mode");
   }
 
@@ -106,7 +150,6 @@ export class Game extends Scene {
     player.setActive(false).setVisible(false);
     player.body.enable = false;
 
-    // Determinar ganador
     const winner = id === 1 ? "Jugador 2" : "Jugador 1";
     this.time.delayedCall(500, () => {
       this.scene.start("GameOver", { winner });

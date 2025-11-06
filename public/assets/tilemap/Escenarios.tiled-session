@@ -1,4 +1,8 @@
 {
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
     "activeFile": "map.json",
     "expandedProjectPaths": [
         "."
@@ -48,11 +52,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 0.5,
-            "selectedLayer": 2,
+            "scale": 1,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 325,
-                "y": 287
+                "x": 830.5,
+                "y": 576.5
             }
         },
         "map.json#objetos": {

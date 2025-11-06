@@ -52,7 +52,10 @@ export class Preloader extends Scene {
         this.load.image('donas2', 'assets/image/personajes/donas2.png');
         this.load.image('caja', 'assets/image/personajes/caja.png');
   
-  
+  // === SONIDOS ===
+    this.load.audio("collect", "assets/audio/collect.wav");
+
+
   
   
     }

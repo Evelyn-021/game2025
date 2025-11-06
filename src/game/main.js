@@ -9,6 +9,7 @@ import { CharacterSelect } from './scenes/CharacterSelect.js';
 import { Game } from './scenes/Game.js';
 import { HUDScene } from './scenes/HUDScene.js';
 import { GameOver } from './scenes/GameOver.js';
+import { VictoryScene } from "./scenes/VictoryScene.js";
 
 // Configuración del juego
 const config = {
@@ -34,6 +35,7 @@ const config = {
     Game,
     HUDScene,
     GameOver,
+    VictoryScene,
   ],
 
   // 🧲 Configuración de físicas (arcade simple)
