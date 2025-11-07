@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { GameState } from '../state/GameState.js';
+import Background from '../../classes/Background.js';
 
 export class CharacterSelect extends Scene {
   constructor() {
@@ -7,6 +8,11 @@ export class CharacterSelect extends Scene {
   }
 
   create() {
+ // === Fondo reutilizable ===
+    const bg = new Background(this);
+    bg.create();
+
+
     this.currentPlayer = 1;
 
     // 🧾 Texto superior

@@ -24,4 +24,15 @@ export const GameState = {
       player2: this.player2.character || "Lamb",
     };
   },
+
+
+
+
+  
+// ❤️ NUEVO MÉTODO DE CURACIÓN
+  healPlayer(playerID) {
+    const player = playerID === 1 ? this.player1 : this.player2;
+    if (player.lives < 3) player.lives += 1;
+    return player.lives;
+  },
 };

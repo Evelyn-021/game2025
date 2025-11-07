@@ -6,10 +6,12 @@ import { Preloader } from './scenes/Preloader.js';
 import { MainMenu } from './scenes/MainMenu.js';
 import { ModeSelect } from './scenes/ModeSelect.js';
 import { CharacterSelect } from './scenes/CharacterSelect.js';
+import { VersusScene } from "./scenes/VersusScene.js";
 import { Game } from './scenes/Game.js';
 import { HUDScene } from './scenes/HUDScene.js';
 import { GameOver } from './scenes/GameOver.js';
 import { VictoryScene } from "./scenes/VictoryScene.js";
+import { EmpateScene } from "./scenes/EmpateScene.js";
 
 // Configuración del juego
 const config = {
@@ -17,7 +19,7 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   parent: 'game-container',
-  backgroundColor: '#028af8',
+  backgroundColor: '#43474bff',
 
   // Ajuste de escala para pantallas de distintos tamaños
   scale: {
@@ -32,10 +34,12 @@ const config = {
     MainMenu,
     ModeSelect,
     CharacterSelect,
+    VersusScene,
     Game,
     HUDScene,
     GameOver,
     VictoryScene,
+    EmpateScene,
   ],
 
   // 🧲 Configuración de físicas (arcade simple)

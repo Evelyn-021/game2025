@@ -27,44 +27,55 @@ export class Preloader extends Scene {
     this.load.image('background', 'assets/image/menu/background.png');
 
     // === TILEMAP ===
-    this.load.image('tiles', 'assets/tilemap/wip4.png');
-    this.load.tilemapTiledJSON('map', 'assets/tilemap/map.json');
-    //Parallax
-    this.load.image('background2', 'assets/image/escenario/background2.png');
+    this.load.image('tiles', 'assets/tilemap/wip4.png');          // Tileset del suelo
+    this.load.image('escalera', 'assets/tilemap/escalera.png');   // Tileset de escaleras
+    this.load.tilemapTiledJSON('map', 'assets/tilemap/map.json'); // Mapa con ambas capas
 
-    // === PERSONAJES / SPRITES ===
+    // === PARALLAX ===
+   this.load.image("background2", "assets/image/escenario/background2.png");
+    this.load.image("cake_valley_yellow-clouds", "assets/image/escenario/cake_valley_yellow-clouds.png");
+    this.load.image("cake_valley_cotton-candy-middle", "assets/image/escenario/cake_valley_cotton-candy-middle.png");
+    this.load.image("cake_valley_cotton-candy-front", "assets/image/escenario/cake_valley_cotton-candy-front.png");
+    this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
+
     this.load.atlas('Pinky', 'assets/image/personajes/Pinky.png', 'assets/image/personajes/Pinky.json');
     this.load.atlas('Lamb', 'assets/image/personajes/Lamb.png', 'assets/image/personajes/Lamb.json');
 
+    // === SELECCIÓN DE PERSONAJES ===
+    this.load.atlas('SelectPinky', 'assets/image/personajes/SelectPinky.png', 'assets/image/personajes/SelectPinky.json');
+    this.load.atlas('SelectLamb', 'assets/image/personajes/SelectLamb.png', 'assets/image/personajes/SelectLamb.json');
 
+    // === SELECTOR DE MODO ===
+    this.load.image('SelectVersus', 'assets/image/personajes/SelectVersus.png');
+    this.load.image('SelectCoop', 'assets/image/personajes/SelectCoop.png');
 
-    // Pantalla animada de selección de personajes
-       this.load.atlas('SelectPinky', 'assets/image/personajes/SelectPinky.png', 'assets/image/personajes/SelectPinky.json');
-        this.load.atlas('SelectLamb', 'assets/image/personajes/SelectLamb.png', 'assets/image/personajes/SelectLamb.json');
+    // === FLECHAS COMBO ===
+    this.load.image("flecha1", "assets/image/personajes/flecha1.png");
+    this.load.image("flecha2", "assets/image/personajes/flecha2.png");
+    this.load.image("flecha3", "assets/image/personajes/flecha3.png");
+    this.load.image("flecha4", "assets/image/personajes/flecha4.png");
 
+    // === OBJETOS ===
+    this.load.image('donas', 'assets/image/personajes/donas.png');
+    this.load.image('donas2', 'assets/image/personajes/donas2.png');
+    this.load.image('caja', 'assets/image/personajes/caja.png');
 
-        //Selector de modo
-        this.load.image('SelectVersus', 'assets/image/personajes/SelectVersus.png');
-        this.load.image('SelectCoop', 'assets/image/personajes/SelectCoop.png');
-    
-        // Objetos
-        this.load.image('donas', 'assets/image/personajes/donas.png');
-        this.load.image('donas2', 'assets/image/personajes/donas2.png');
-        this.load.image('caja', 'assets/image/personajes/caja.png');
-  
-  // === SONIDOS ===
+      // === SALUD ===
+      this.load.spritesheet('health', 'assets/image/personajes/health.png', {
+        frameWidth: 32,
+        frameHeight: 32,
+      });
+
+    // === SONIDOS ===
     this.load.audio("collect", "assets/audio/collect.wav");
-
-
-  
-  
-    }
+    this.load.audio("respawn", "assets/audio/respawn.wav");
+    this.load.audio("salud", "assets/audio/salud.wav");
+  }
 
   create() {
-    // 🔹 Eliminar la barra y el marco antes de pasar a la siguiente escena
+    // Eliminar la barra y el marco antes de pasar a la siguiente escena
     this.bar.destroy();
     this.border.destroy();
-
 
     // Pequeño retraso antes de pasar al menú (opcional)
     this.time.delayedCall(1000, () => {

@@ -43,6 +43,9 @@ export class HUDScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setScrollFactor(0);
 
+    // ❤️ VIDAS JUGADOR 1
+    this.heartsP1 = this.addHearts(30, 70);
+
     // === CONTENEDOR JUGADOR 2 ===
     this.add.rectangle(940, 40, 130, 50, 0x000000, 0.4)
       .setScrollFactor(0)
@@ -57,6 +60,9 @@ export class HUDScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setScrollFactor(0);
 
+    // ❤️ VIDAS JUGADOR 2
+    this.heartsP2 = this.addHearts(870, 70);
+
     // === CRONÓMETRO CENTRAL ===
     this.timeLeft = 120; // 2 minutos = 120 segundos
     this.timerText = this.add.text(512, 40, "02:00", {
@@ -67,7 +73,6 @@ export class HUDScene extends Phaser.Scene {
       strokeThickness: 6,
     }).setOrigin(0.5).setScrollFactor(0);
 
-    // Evento que actualiza cada segundo
     this.timerEvent = this.time.addEvent({
       delay: 1000,
       callback: this.updateTimer,
@@ -75,10 +80,16 @@ export class HUDScene extends Phaser.Scene {
       loop: true,
     });
 
-    // === EVENTO GLOBAL DE ACTUALIZACIÓN DE DONAS ===
+    // === EVENTOS ===
     events.on("update-donas", ({ playerID, cantidad }) => {
       if (playerID === 1) this.playerDonas.P1.setText(cantidad);
       if (playerID === 2) this.playerDonas.P2.setText(cantidad);
+    });
+
+    // Cuando un jugador pierde una vida
+    events.on("update-life", ({ playerID, vidas }) => {
+      if (playerID === 1) this.updateHearts(this.heartsP1, vidas);
+      if (playerID === 2) this.updateHearts(this.heartsP2, vidas);
     });
 
     // === LIMPIEZA ===
@@ -88,6 +99,27 @@ export class HUDScene extends Phaser.Scene {
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       events.off("update-donas");
+      events.off("update-life");
+    });
+  }
+
+  // ❤️ Dibuja tres corazones (por defecto llenos)
+  addHearts(x, y) {
+    const hearts = [];
+    for (let i = 0; i < 3; i++) {
+      const heart = this.add
+        .sprite(x + i * 35, y, "health", 0) // frame 0 = lleno
+        .setScrollFactor(0)
+        .setScale(1.2);
+      hearts.push(heart);
+    }
+    return hearts;
+  }
+
+  // 💔 Actualiza corazones según las vidas
+  updateHearts(hearts, vidas) {
+    hearts.forEach((heart, index) => {
+      heart.setFrame(index < vidas ? 0 : 1); // 0 = lleno, 1 = vacío
     });
   }
 

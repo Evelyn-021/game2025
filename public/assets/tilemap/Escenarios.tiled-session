@@ -11,13 +11,25 @@
     "fileStates": {
         "": {
             "scaleInDock": 1,
-            "scaleInEditor": 1
+            "scaleInEditor": 1.5
         },
         "#objetos": {
             "scaleInDock": 1
         },
         "#suelo": {
             "scaleInDock": 1
+        },
+        "C:/Users/USER/Documents/TP-Tilemaps-main/TP-Tilemaps-main/public/assets/tilemap/map.json": {
+            "scale": 0.48687499999999995,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 360.46213093709895,
+                "y": 360.4621309370989
+            }
+        },
+        "C:/Users/USER/Documents/TP-Tilemaps-main/TP-Tilemaps-main/public/assets/tilemap/map.json#tileset": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         },
         "C:/Users/USER/Downloads/Phaser3-TileMap-Template-feature-add-big-map/Phaser3-TileMap-Template-feature-add-big-map/public/assets/tilemap/map.json": {
             "expandedObjectLayers": [
@@ -41,23 +53,40 @@
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 387,
-                "y": 487
+                "y": 613
             }
         },
         "C:/Users/USER/Downloads/TP-Tilemaps-main/TP-Tilemaps-main/public/assets/tilemap/map.json#tileset": {
             "scaleInDock": 1,
             "scaleInEditor": 1
         },
+        "C:/Users/USER/Downloads/mapa1.json": {
+            "expandedObjectLayers": [
+                4
+            ],
+            "scale": 0.5,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 955,
+                "y": 505
+            }
+        },
+        "C:/Users/USER/Downloads/mapa1.json#suelo": {
+            "scaleInDock": 1
+        },
         "map.json": {
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 1,
-            "selectedLayer": 1,
+            "scale": 0.5,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 830.5,
-                "y": 576.5
+                "x": 283,
+                "y": 227
             }
+        },
+        "map.json#escalera": {
+            "scaleInDock": 1
         },
         "map.json#objetos": {
             "scaleInDock": 1
@@ -85,15 +114,18 @@
             "scaleInEditor": 1
         }
     },
-    "last.imagePath": "C:/Users/USER/OneDrive/Escritorio/game/public/assets/tilemap",
+    "last.imagePath": "C:/Users/USER/OneDrive/Escritorio/game/public/assets/image/escenario",
     "openFiles": [
         "map.json"
     ],
     "project": "Escenarios.tiled-project",
-    "property.type": "object",
+    "property.type": "bool",
     "recentFiles": [
-        "map.json",
+        "C:/Users/USER/Downloads/mapa1.json",
+        "C:/Users/USER/Documents/TP-Tilemaps-main/TP-Tilemaps-main/public/assets/tilemap/map.json",
         "C:/Users/USER/Downloads/TP-Tilemaps-main/TP-Tilemaps-main/public/assets/tilemap/map.json",
+        "map.json",
         "C:/Users/USER/Downloads/Phaser3-TileMap-Template-feature-add-big-map/Phaser3-TileMap-Template-feature-add-big-map/public/assets/tilemap/map.json"
-    ]
+    ],
+    "tileset.embedInMap": true
 }
