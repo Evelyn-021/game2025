@@ -13,12 +13,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.audioManager = audioManager;
 
     // === CONFIGURACIÓN ===
-    this.speed = 50;
+    this.speed = 45;
     this.direction = Math.random() > 0.5 ? 1 : -1;
     this.isAttacking = false;
     this.hp = 3;
     this.detectionRange = 120;
-    this.attackRange = 80;
+    this.attackRange = 70;
 
     this.setOrigin(0.5, 1);
     this.setScale(1.15);
@@ -29,20 +29,21 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
-  if (!this.active || this.isAttacking) return;
+    if (!this.active || this.isAttacking) return;
 
-  const target = this.detectPlayer();
-  if (target) {
-    const horizontalDist = Math.abs(target.x - this.x);
-    const verticalDist = Math.abs(target.y - this.y);
+    const target = this.detectPlayer();
+    if (target) {
+      const horizontalDist = Math.abs(target.x - this.x);
+      const verticalDist = Math.abs(target.y - this.y);
 
-    if (verticalDist < 40) {
-      if (horizontalDist < this.attackRange) {
+      // === ATAQUE ===
+      if (verticalDist < 40 && horizontalDist < this.attackRange) {
         this.attack(target);
         return;
       }
 
-      if (horizontalDist < this.detectionRange) {
+      // === PERSECUCIÓN ===
+      if (verticalDist < 40 && horizontalDist < this.detectionRange) {
         this.direction = target.x < this.x ? -1 : 1;
         this.setFlipX(this.direction < 0);
         this.setVelocityX(this.speed * this.direction);
@@ -50,30 +51,27 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         return;
       }
     }
+
+    // === PATRULLAJE ===
+    this.setVelocityX(this.speed * this.direction);
+    this.play(`${this.tipo}_walk`, true);
+
+    // === DETECCIÓN DE BORDES / PAREDES ===
+    const rayLength = 12;
+    const rayX = this.x + this.direction * rayLength;
+    const rayY = this.y + this.height / 2;
+
+    const tileBelow = this.scene.plataformas.getTileAtWorldXY(rayX, rayY + 10);
+    const blockedLeft = this.body.blocked.left;
+    const blockedRight = this.body.blocked.right;
+
+    if (!tileBelow || blockedLeft || blockedRight) {
+      this.direction *= -1;
+      this.setFlipX(this.direction < 0);
+    }
   }
 
-  // === Patrullaje normal ===
-  this.setVelocityX(this.speed * this.direction);
-  this.play(`${this.tipo}_walk`, true);
-
-  // === NUEVA detección de borde ===
-  const rayLength = 12;
-  const rayX = this.x + this.direction * rayLength;
-  const rayY = this.y + this.height / 2;
-
-  const tileBelow = this.scene.plataformas.getTileAtWorldXY(rayX, rayY + 10);
-  const blockedLeft = this.body.blocked.left;
-  const blockedRight = this.body.blocked.right;
-
-  // Solo girar si NO hay piso o choca una pared
-  if (!tileBelow || blockedLeft || blockedRight) {
-    this.direction *= -1;
-    this.setFlipX(this.direction < 0);
-  }
-}
-
-
-  // === DETECCIÓN DE JUGADOR ===
+  // === DETECTAR JUGADOR MÁS CERCANO ===
   detectPlayer() {
     let closest = null;
     let minDist = Infinity;
@@ -98,20 +96,22 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.play(`${this.tipo}_attack`, true);
     this.audioManager.play("bitemonster", { volume: 0.5 });
 
-    this.scene.time.delayedCall(400, () => {
+    // Golpe tras pequeño retardo (sin spamear)
+    this.scene.time.delayedCall(300, () => {
       const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
       const sameHeight = Math.abs(this.y - player.y) < 40;
-      if (dist < this.attackRange && sameHeight) {
+      if (dist < this.attackRange && sameHeight && !player.invulnerable) {
         this.scene.events.emit("enemy-attack", player);
       }
     });
 
     this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
       this.isAttacking = false;
-      this.play(`${this.tipo}_idle`);
+      this.play(`${this.tipo}_idle`, true);
     });
   }
 
+  // === ANIMACIONES ===
   createAnimations(scene) {
     const key = this.texture.key;
     if (scene.anims.exists(`${key}_idle`)) return;
