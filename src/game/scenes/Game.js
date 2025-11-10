@@ -89,7 +89,7 @@ export class Game extends Scene {
     this.physics.add.collider(this.player2, this.plataformas);
 
 // === ENEMIGOS ===
-this.enemies = this.physics.add.group({ runChildUpdate: true });
+this.enemies = this.add.group();
 const enemyObjects = map.getObjectLayer("enemigos")?.objects || [];
 
 enemyObjects.forEach((obj) => {
@@ -102,6 +102,7 @@ enemyObjects.forEach((obj) => {
   enemy.body.setSize(enemy.width * 0.6, enemy.height * 0.8);
   enemy.body.setOffset(enemy.width * 0.2, enemy.height * 0.2);
   enemy.body.allowGravity = true;
+
   this.enemies.add(enemy);
   this.physics.add.collider(enemy, this.plataformas);
 });
@@ -111,10 +112,11 @@ this.physics.add.collider(this.enemies, [this.player1, this.player2]);
 
 // ⚔️ Detección de daño (solamente si colisionan o se acercan mucho)
 this.physics.add.overlap(this.enemies, [this.player1, this.player2], (enemy, player) => {
-  if (!enemy.isAttacking && !player.invulnerable) {
+  if (enemy instanceof Enemy && !enemy.isAttacking && !player.invulnerable) {
     enemy.attack(player); // usa el método del enemigo
   }
 });
+
 
 
     // === CAJAS ===
