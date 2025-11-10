@@ -37,9 +37,15 @@ export class Preloader extends Scene {
     this.load.image("cake_valley_cotton-candy-middle", "assets/image/escenario/cake_valley_cotton-candy-middle.png");
     this.load.image("cake_valley_cotton-candy-front", "assets/image/escenario/cake_valley_cotton-candy-front.png");
     this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
-
+    
+    //PERSONAJES
     this.load.atlas('Pinky', 'assets/image/personajes/Pinky.png', 'assets/image/personajes/Pinky.json');
     this.load.atlas('Lamb', 'assets/image/personajes/Lamb.png', 'assets/image/personajes/Lamb.json');
+
+   
+    // === ENEMIGOS ===
+    this.load.atlas('bear', 'assets/image/enemigos/bear.png', 'assets/image/enemigos/bear.json');
+    this.load.atlas('ooze', 'assets/image/enemigos/ooze.png', 'assets/image/enemigos/ooze.json');
 
     // === SELECCIÓN DE PERSONAJES ===
     this.load.atlas('SelectPinky', 'assets/image/personajes/SelectPinky.png', 'assets/image/personajes/SelectPinky.json');
@@ -70,6 +76,9 @@ export class Preloader extends Scene {
     this.load.audio("collect", "assets/audio/collect.wav");
     this.load.audio("respawn", "assets/audio/respawn.wav");
     this.load.audio("salud", "assets/audio/salud.wav");
+    this.load.audio("bitemonster", "assets/audio/bitemonster.mp3");
+    this.load.audio("daño", "assets/audio/daño.mp3");
+
   }
 
   create() {

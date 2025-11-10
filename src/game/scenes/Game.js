@@ -5,7 +5,7 @@ import { GameState } from "../state/GameState.js";
 import { events } from "../../classes/GameEvents.js";
 import AudioManager from "../../systems/AudioManager.js";
 import Combo from "../../classes/combo.js"; // 🆕 NUEVO IMPORT
-
+import Enemy from "../../classes/Enemy.js";
 export class Game extends Scene {
   constructor() {
     super("Game");
@@ -17,6 +17,9 @@ export class Game extends Scene {
     this.audioManager.add("collect");
     this.audioManager.add("respawn");
     this.audioManager.add("salud"); // 🆕 sonido de curación
+  // 🧟‍♂️ Sonidos de enemigos
+    this.audioManager.add("bitemonster"); // rugido o mordida
+    this.audioManager.add("daño");      // daño al jugador
 
     // === PARALLAX ANCLADO A CÁMARA ===
     const cam = this.cameras.main;
@@ -59,12 +62,20 @@ export class Game extends Scene {
     this.spawn2 = objetos.find(o => o.name === "player2");
 
     // === CONTROLES ===
-    const keys1 = this.input.keyboard.createCursorKeys();
-    const keys2 = this.input.keyboard.addKeys({
+    const keys1 = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
       down: Phaser.Input.Keyboard.KeyCodes.S,
+      collect: Phaser.Input.Keyboard.KeyCodes.E, // Pinky
+    });
+
+    const keys2 = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.UP,
+      left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+      right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      down: Phaser.Input.Keyboard.KeyCodes.DOWN,
+      collect: Phaser.Input.Keyboard.KeyCodes.ENTER, // Lamb
     });
 
     // === PERSONAJES ===
@@ -76,6 +87,25 @@ export class Game extends Scene {
 
     this.physics.add.collider(this.player1, this.plataformas);
     this.physics.add.collider(this.player2, this.plataformas);
+
+// === ENEMIGOS ===
+this.enemies = this.add.group();
+const enemyObjects = map.getObjectLayer("enemigos")?.objects || [];
+
+enemyObjects.forEach((obj) => {
+  const tipo = obj.name;
+  const x = obj.x;
+  const y = obj.y;
+  const enemy = new Enemy(this, x, y, tipo, tipo, [this.player1, this.player2], this.audioManager);
+  this.enemies.add(enemy);
+  this.physics.add.existing(enemy);
+  this.physics.add.collider(enemy, this.plataformas);
+});
+// === DAÑO DE ENEMIGOS ===
+this.physics.add.overlap(this.enemies, [this.player1, this.player2], (enemy, player) => {
+  if (enemy.isAttacking || player.invulnerable) return;
+  enemy.attack(player);
+});
 
     // === CAJAS ===
     this.caja1 = this.physics.add.sprite(120, 560, "caja").setScale(1.1);
@@ -185,6 +215,11 @@ export class Game extends Scene {
   update() {
     this.player1.update();
     this.player2.update();
+
+// === ACTUALIZAR ENEMIGOS ===
+this.enemies.children.iterate((enemy) => {
+  if (enemy) enemy.update();
+});
 
     // === MOVIMIENTO DE CÁMARA DINÁMICO ===
     const cam = this.cameras.main;
