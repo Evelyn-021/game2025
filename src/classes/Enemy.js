@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { GameState } from "../game/state/GameState.js";
+import { events } from "./GameEvents.js";
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, tipo, jsonKey, playerTargets, audioManager) {
@@ -7,9 +9,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
+    // ✅ Guardar referencias PRIMERO
     this.scene = scene;
     this.tipo = tipo;
-    this.playerTargets = playerTargets;
+    this.playerTargets = playerTargets || [];
     this.audioManager = audioManager;
 
     // === CONFIGURACIÓN ===
@@ -23,13 +26,45 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setOrigin(0.5, 1);
     this.setScale(1.15);
     this.setCollideWorldBounds(true);
+    this.setImmovable(true);
+    this.setPushable(false);
 
     this.createAnimations(scene);
     this.play(`${tipo}_idle`);
+
+    // ✅ Mover collisions al final del constructor
+    this.setupCollisions();
+  }
+
+  setupCollisions() {
+    if (!this.scene || !this.playerTargets) {
+      console.warn("Scene or playerTargets not ready for collisions");
+      return;
+    }
+
+    // ✅ Colisión con plataformas
+    if (this.scene.plataformas) {
+      this.scene.physics.add.collider(this, this.scene.plataformas);
+    }
+
+    // ✅ Colisión física con jugadores
+    if (this.playerTargets.length > 0) {
+      this.scene.physics.add.collider(this, this.playerTargets);
+    }
+
+    // ✅ Detección de daño y ataque (SOLO overlap, NO event listener)
+    if (this.playerTargets.length > 0) {
+      this.scene.physics.add.overlap(this, this.playerTargets, (enemy, player) => {
+        if (!enemy.isAttacking && !player.invulnerable) {
+          enemy.attack(player);
+        }
+      });
+    }
+
   }
 
   update() {
-    if (!this.active || this.isAttacking) return;
+    if (!this.active || this.isAttacking || !this.scene) return;
 
     const target = this.detectPlayer();
     if (target) {
@@ -56,28 +91,32 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setVelocityX(this.speed * this.direction);
     this.play(`${this.tipo}_walk`, true);
 
-    // === DETECCIÓN DE BORDES / PAREDES ===
+    // === DETECCIÓN DE BORDES ===
     const rayLength = 12;
     const rayX = this.x + this.direction * rayLength;
     const rayY = this.y + this.height / 2;
 
-    const tileBelow = this.scene.plataformas.getTileAtWorldXY(rayX, rayY + 10);
-    const blockedLeft = this.body.blocked.left;
-    const blockedRight = this.body.blocked.right;
+    // ✅ Verificar que plataformas existe
+    if (this.scene.plataformas) {
+      const tileBelow = this.scene.plataformas.getTileAtWorldXY(rayX, rayY + 10);
+      const blockedLeft = this.body.blocked.left;
+      const blockedRight = this.body.blocked.right;
 
-    if (!tileBelow || blockedLeft || blockedRight) {
-      this.direction *= -1;
-      this.setFlipX(this.direction < 0);
+      if (!tileBelow || blockedLeft || blockedRight) {
+        this.direction *= -1;
+        this.setFlipX(this.direction < 0);
+      }
     }
   }
 
-  // === DETECTAR JUGADOR MÁS CERCANO ===
   detectPlayer() {
+    if (!this.playerTargets || this.playerTargets.length === 0) return null;
+
     let closest = null;
     let minDist = Infinity;
 
     for (const player of this.playerTargets) {
-      if (!player.active) continue;
+      if (!player || !player.active) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
       if (dist < minDist) {
         minDist = dist;
@@ -87,20 +126,26 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     return closest;
   }
 
-  // === ATAQUE ===
   attack(player) {
-    if (this.isAttacking) return;
+    if (this.isAttacking || !this.scene) return;
 
     this.isAttacking = true;
     this.setVelocityX(0);
     this.play(`${this.tipo}_attack`, true);
-    this.audioManager.play("bitemonster", { volume: 0.5 });
+    
+    if (this.audioManager) {
+      this.audioManager.play("bitemonster", { volume: 0.5 });
+    }
 
-    // Golpe tras pequeño retardo (sin spamear)
+    // ✅ Verificar que scene.tweens existe
     this.scene.time.delayedCall(300, () => {
+      if (!player || !this.scene) return;
+      
       const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
       const sameHeight = Math.abs(this.y - player.y) < 40;
+      
       if (dist < this.attackRange && sameHeight && !player.invulnerable) {
+        // ✅ Emitir ataque - el Game.js escuchará esto
         this.scene.events.emit("enemy-attack", player);
       }
     });
@@ -111,8 +156,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  // === ANIMACIONES ===
   createAnimations(scene) {
+    if (!scene) return;
+    
     const key = this.texture.key;
     if (scene.anims.exists(`${key}_idle`)) return;
 

@@ -12,6 +12,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.id = id; // 1 o 2
     this.keys = keys; // teclas asignadas
     this.textureName = texture; // "Pinky" o "Lamb"
+    
+    // ✅ SOLO ESTE LOG ES SEGURO
+    console.log(`🎮 Player ${id} creado con texture: ${texture}`);
+    
     this.speed = 160;
     this.jumpStrength = -280;
     this.score = 0;
@@ -20,6 +24,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     // === ANIMACIONES ===
     this.createAnimations(scene);
+    this.play(`${this.textureName}_idle`, true);
   }
 
   update() {
@@ -66,46 +71,47 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   createAnimations(scene) {
     const key = this.textureName;
 
-    // Evita duplicar animaciones si ya existen
-    if (scene.anims.exists(`${key}_idle`)) return;
+    // ✅ Versión segura sin logs
+    if (!scene.anims.exists(`${key}_idle`)) {
+      scene.anims.create({
+        key: `${key}_idle`,
+        frames: scene.anims.generateFrameNames(key, {
+          prefix: `${key} `,
+          start: 0,
+          end: 3,
+          suffix: ".aseprite",
+        }),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
 
-    // 🩷 Idle (frames 0–3)
-    scene.anims.create({
-      key: `${key}_idle`,
-      frames: scene.anims.generateFrameNames(key, {
-        prefix: `${key} `,
-        start: 0,
-        end: 3,
-        suffix: ".aseprite",
-      }),
-      frameRate: 6,
-      repeat: -1,
-    });
+    if (!scene.anims.exists(`${key}_walk`)) {
+      scene.anims.create({
+        key: `${key}_walk`,
+        frames: scene.anims.generateFrameNames(key, {
+          prefix: `${key} `,
+          start: 4,
+          end: 9,
+          suffix: ".aseprite",
+        }),
+        frameRate: 10,
+        repeat: -1,
+      });
+    }
 
-    // 💙 Walk (frames 4–9)
-    scene.anims.create({
-      key: `${key}_walk`,
-      frames: scene.anims.generateFrameNames(key, {
-        prefix: `${key} `,
-        start: 4,
-        end: 9,
-        suffix: ".aseprite",
-      }),
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    // 💨 Jump (frames 10–14)
-    scene.anims.create({
-      key: `${key}_jump`,
-      frames: scene.anims.generateFrameNames(key, {
-        prefix: `${key} `,
-        start: 10,
-        end: 14,
-        suffix: ".aseprite",
-      }),
-      frameRate: 10,
-      repeat: 0,
-    });
+    if (!scene.anims.exists(`${key}_jump`)) {
+      scene.anims.create({
+        key: `${key}_jump`,
+        frames: scene.anims.generateFrameNames(key, {
+          prefix: `${key} `,
+          start: 10,
+          end: 14,
+          suffix: ".aseprite",
+        }),
+        frameRate: 10,
+        repeat: 0,
+      });
+    }
   }
 }

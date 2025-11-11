@@ -78,11 +78,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 0.5,
-            "selectedLayer": 4,
+            "scale": 1,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 485,
-                "y": 361
+                "x": 902.5,
+                "y": 80.5
             }
         },
         "map.json#escalera": {
