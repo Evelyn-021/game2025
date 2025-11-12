@@ -4,11 +4,12 @@ import Recolectables from "../../classes/recolectables.js";
 import { GameState } from "../state/GameState.js";
 import { events } from "../../classes/GameEvents.js";
 import AudioManager from "../../systems/AudioManager.js";
-import Combo from "../../classes/combo.js"; // 🆕 NUEVO IMPORT
+import Combo from "../../classes/combo.js";
 import Enemy from "../../classes/Enemy.js";
 import DamageSystem from "../../systems/DamageSystem.js";
 import { ServiceLocator } from "../../systems/ServiceLocator.js";
 import Factory from "../../systems/Factory.js";
+import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
 
 export class Game extends Scene {
   constructor() {
@@ -16,12 +17,34 @@ export class Game extends Scene {
   }
 
   create() {
+    // === SISTEMA DE ENTRADA GLOBAL ===
+    this.inputSystem = new InputSystem(this.input);
+
+    // J1 - WASD + SPACE (salto) + E (acción)
+    this.inputSystem.configureKeyboard({
+      [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.A],
+      [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.D],
+      [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.W],
+      [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.S],
+      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.SPACE], // ← SALTO
+      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.E],     // acción
+    }, "player1");
+
+    // J2 - Flechas + 0 del numpad (salto) + ENTER (acción)
+    this.inputSystem.configureKeyboard({
+      [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.LEFT],
+      [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.RIGHT],
+      [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.UP],
+      [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.DOWN],
+      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO], // ← SALTO
+      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.ENTER],       // acción
+    }, "player2");
+
     // === SISTEMAS GLOBALES/ AUDIO MANAGER ===
     this.audioManager = new AudioManager(this);
     this.audioManager.add("collect");
     this.audioManager.add("respawn");
-    this.audioManager.add("salud"); // 🆕 sonido de curación
-
+    this.audioManager.add("salud");
 
     this.damageSystem = new DamageSystem(this, this.audioManager);
 
@@ -29,9 +52,9 @@ export class Game extends Scene {
     ServiceLocator.register("audio", this.audioManager);
     ServiceLocator.register("damage", this.damageSystem);
 
-  // 🧟‍♂️ Sonidos de enemigos
-    this.audioManager.add("bitemonster"); // rugido o mordida
-    this.audioManager.add("daño");      // daño al jugador
+    // 🧟‍♂️ Sonidos de enemigos
+    this.audioManager.add("bitemonster");
+    this.audioManager.add("daño");
 
     // === PARALLAX ANCLADO A CÁMARA ===
     const cam = this.cameras.main;
@@ -51,12 +74,11 @@ export class Game extends Scene {
     this.bgStars.displayWidth = width * 1.5;
     this.bgStars.displayHeight = height * 1.5;
 
-   // === TILEMAP Y PLATAFORMAS ===
+    // === TILEMAP Y PLATAFORMAS ===
     const { map, plataformas, escaleras } = Factory.createMap(this, "map");
     this.map = map;
     this.plataformas = plataformas;
     this.escaleras = escaleras;
-
 
     // === FÍSICAS ===
     this.physics.world.gravity.y = 800;
@@ -67,41 +89,17 @@ export class Game extends Scene {
     this.spawn1 = objetos.find(o => o.name === "player");
     this.spawn2 = objetos.find(o => o.name === "player2");
 
-    
-
-
-    // === CONTROLES ===
-    const keys1 = this.input.keyboard.addKeys({
-      up: Phaser.Input.Keyboard.KeyCodes.W,
-      left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
-      down: Phaser.Input.Keyboard.KeyCodes.S,
-      collect: Phaser.Input.Keyboard.KeyCodes.E, // Pinky
-    });
-
-    const keys2 = this.input.keyboard.addKeys({
-      up: Phaser.Input.Keyboard.KeyCodes.UP,
-      left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-      right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-      down: Phaser.Input.Keyboard.KeyCodes.DOWN,
-      collect: Phaser.Input.Keyboard.KeyCodes.ENTER, // Lamb
-    });
-
     // === PERSONAJES ===
-const char1 = GameState.player1.character || "Pinky";
-const char2 = GameState.player2.character || "Lamb";
+    const char1 = GameState.player1.character || "Pinky";
+    const char2 = GameState.player2.character || "Lamb";
 
-// ✅ SOLO ESTOS LOGS
-console.log('🔍 GameState - J1:', GameState.player1.character, 'J2:', GameState.player2.character);
+    console.log('🔍 GameState - J1:', GameState.player1.character, 'J2:', GameState.player2.character);
 
-this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, keys1, 1);
-this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, keys2, 2);
+    this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, 1);
+    this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
 
     this.physics.add.collider(this.player1, this.plataformas);
     this.physics.add.collider(this.player2, this.plataformas);
-
-
-
 
     // === CAJAS ===
     [this.caja1, this.caja2] = Factory.createBoxes(this);
@@ -114,48 +112,40 @@ this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, keys2, 2);
       [this.caja1, this.caja2]
     );
 
-// === ENEMIGOS ===
-this.enemies = this.add.group();
-const enemyObjects = map.getObjectLayer("enemigos")?.objects || [];
+    // === ENEMIGOS ===
+    this.enemies = this.add.group();
+    const enemyObjects = map.getObjectLayer("enemigos")?.objects || [];
 
-enemyObjects.forEach((obj) => {
-  const tipo = obj.name;
-  const x = obj.x;
-  const y = obj.y;
-  const enemy = new Enemy(this, x, y, tipo, tipo, [this.player1, this.player2], this.audioManager);
-  this.enemies.add(enemy);
-});
+    enemyObjects.forEach((obj) => {
+      const tipo = obj.name;
+      const x = obj.x;
+      const y = obj.y;
+      const enemy = new Enemy(this, x, y, tipo, tipo, [this.player1, this.player2], this.audioManager);
+      this.enemies.add(enemy);
+    });
 
-// === ACTUALIZACIÓN ===
-this.enemies.children.iterate((enemy) => {
-  if (enemy) enemy.update();
-});
+    // === ACTUALIZACIÓN ===
+    this.enemies.children.iterate((enemy) => {
+      if (enemy) enemy.update();
+    });
 
+    // === ESCUCHAR ATAQUES ENEMIGOS ===
+    this.events.on("enemy-attack", (player) => {
+      const damageSystem = ServiceLocator.get("damage");
+      damageSystem.applyDamage(player, player.id);
+    });
 
-
-
- 
-
-    
-// === ESCUCHAR ATAQUES ENEMIGOS === ⚔️
-this.events.on("enemy-attack", (player) => {
-  const damageSystem = ServiceLocator.get("damage");
-  damageSystem.applyDamage(player, player.id);
-});
-
-// === ESCUCHAR MUERTE DE JUGADORES === 💀
-  events.on("player-dead", (data) => {
-    const { player, playerID } = data;
-    console.log(`📢 Evento player-dead recibido: Jugador ${playerID}`);
-    this.handlePlayerDeath(player, playerID);
-  });
+    // === ESCUCHAR MUERTE DE JUGADORES ===
+    events.on("player-dead", (data) => {
+      const { player, playerID } = data;
+      console.log(`📢 Evento player-dead recibido: Jugador ${playerID}`);
+      this.handlePlayerDeath(player, playerID);
+    });
 
     // === LIMPIAR SERVICIOS AL SALIR ===
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       ServiceLocator.clear();
     });
-
-
 
     // === CÁMARA ===
     cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -164,10 +154,10 @@ this.events.on("enemy-attack", (player) => {
     this.scene.launch("HUDScene");
 
     // === ESCALERAS ===
-    this.addClimbLogic(this.player1, keys1);
-    this.addClimbLogic(this.player2, keys2);
+    this.addClimbLogic(this.player1, "player1");
+    this.addClimbLogic(this.player2, "player2");
 
-    // === COMBOS === 🆕
+    // === COMBOS ===
     this.combo1 = new Combo(this, this.player1);
     this.combo2 = new Combo(this, this.player2);
 
@@ -178,9 +168,6 @@ this.events.on("enemy-attack", (player) => {
         events.emit("update-life", { playerID: playerId, vidas: playerState.lives });
       }
     });
-
-
-
 
     // === MODOS ===
     if (GameState.mode === "versus") this.initVersus(objetos);
@@ -202,115 +189,145 @@ this.events.on("enemy-attack", (player) => {
     });
   }
 
-// === SISTEMA DE VERIFICACIÓN DE MUERTE ===
-checkPlayerDeath(player, playerId) {
-  const playerState = playerId === 1 ? GameState.player1 : GameState.player2;
-  
-  if (playerState.lives <= 0 && player.active) {
-    console.log(`Jugador ${playerId} murió!`);
-    this.handlePlayerDeath(player, playerId);
-  }
-}
-
-// === MANEJADOR DE MUERTE ===
-handlePlayerDeath(player, playerId) {
-  player.setActive(false).setVisible(false);
-  player.body.enable = false;
-
-  const p1 = GameState.player1.donasRecolectadas || 0;
-  const p2 = GameState.player2.donasRecolectadas || 0;
-  const tiempo = this.scene.get("HUDScene")?.tiempo ?? 0;
-  const winner = playerId === 1 ? "Jugador 2" : "Jugador 1";
-  
-  // Detener escena HUD
-  this.scene.stop("HUDScene");
-  
-  // Ir a GameOver después de un breve delay
-  this.time.delayedCall(800, () => {
-    this.scene.start("GameOver", { 
-      winner, 
-      p1, 
-      p2, 
-      tiempo, 
-      motivo: "sin vidas" 
-    });
-  });
-}
-
-
-
-
-// === LÓGICA DE ESCALERAS ===
-addClimbLogic(player, keys) {
-  player.isClimbing = false;
-  this.events.on("update", () => {
-    // ✅ VERIFICAR que player y body existen
-    if (!player || !player.body || !player.active) return;
+  // === SISTEMA DE VERIFICACIÓN DE MUERTE ===
+  checkPlayerDeath(player, playerId) {
+    const playerState = playerId === 1 ? GameState.player1 : GameState.player2;
     
-    const onLadder = this.escaleras.some(tile =>
-      Phaser.Geom.Intersects.RectangleToRectangle(player.getBounds(), tile.getBounds())
-    );
-    
-    if (onLadder) {
-      player.isClimbing = true;
-      player.body.allowGravity = false;
-      player.setVelocityY(0);
-      if (keys.up.isDown) player.y -= 3;
-      else if (keys.down && keys.down.isDown) player.y += 3;
-    } else if (player.isClimbing) {
-      player.isClimbing = false;
-      player.body.allowGravity = true;
+    if (playerState.lives <= 0 && player.active) {
+      console.log(`Jugador ${playerId} murió!`);
+      this.handlePlayerDeath(player, playerId);
     }
-  });
-}
-
- initVersus() {
-  GameState.player1.donasRecolectadas = 0;
-  GameState.player2.donasRecolectadas = 0;
-
-  this.add.text(this.scale.width / 2, 40, "MODO VERSUS", {
-    fontFamily: "Arial Black",
-    fontSize: 32,
-    color: "#ff66cc",
-    stroke: "#000",
-    strokeThickness: 6,
-  }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
-
-  events.on("dona-recolectada", (playerId) => {
-    if (playerId === 1) GameState.player1.donasRecolectadas++;
-    if (playerId === 2) GameState.player2.donasRecolectadas++;
-  });
-
-  this.physics.add.collider(this.player1, this.player2, () => {
-    const diff = this.player1.x - this.player2.x;
-    if (diff > 0) { this.player1.x += 5; this.player2.x -= 5; }
-    else          { this.player1.x -= 5; this.player2.x += 5; }
-  });
-
-  // 🕒 En lugar de crear un temporizador nuevo,
-  // observamos el del HUD y reaccionamos cuando se acabe.
-  const hud = this.scene.get("HUDScene");
-  if (hud) {
-    hud.events.once("time-up", () => events.emit("time-up"));
   }
 
-}
+  // === MANEJADOR DE MUERTE ===
+  handlePlayerDeath(player, playerId) {
+    player.setActive(false).setVisible(false);
+    player.body.enable = false;
+
+    const p1 = GameState.player1.donasRecolectadas || 0;
+    const p2 = GameState.player2.donasRecolectadas || 0;
+    const tiempo = this.scene.get("HUDScene")?.tiempo ?? 0;
+    const winner = playerId === 1 ? "Jugador 2" : "Jugador 1";
+    
+    this.scene.stop("HUDScene");
+    
+    this.time.delayedCall(800, () => {
+      this.scene.start("GameOver", { 
+        winner, 
+        p1, 
+        p2, 
+        tiempo, 
+        motivo: "sin vidas" 
+      });
+    });
+  }
+
+  // === LÓGICA DE ESCALERAS ===
+  addClimbLogic(player, playerKey) {
+    player.isClimbing = false;
+
+    this.events.on("update", () => {
+      if (!player || !player.body || !player.active) return;
+
+      const onLadder = this.escaleras.some(tile =>
+        Phaser.Geom.Intersects.RectangleToRectangle(player.getBounds(), tile.getBounds())
+      );
+
+      if (onLadder) {
+        player.isClimbing = true;
+        player.body.allowGravity = false;
+        player.setVelocityY(0);
+
+        const input = this.inputSystem;
+        if (input.isPressed(INPUT_ACTIONS.UP, playerKey))    player.y -= 3;
+        else if (input.isPressed(INPUT_ACTIONS.DOWN, playerKey)) player.y += 3;
+
+      } else if (player.isClimbing) {
+        player.isClimbing = false;
+        player.body.allowGravity = true;
+      }
+    });
+  }
+
+  initVersus() {
+    GameState.player1.donasRecolectadas = 0;
+    GameState.player2.donasRecolectadas = 0;
+
+    this.add.text(this.scale.width / 2, 40, "MODO VERSUS", {
+      fontFamily: "Arial Black",
+      fontSize: 32,
+      color: "#ff66cc",
+      stroke: "#000",
+      strokeThickness: 6,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
+
+    events.on("dona-recolectada", (playerId) => {
+      if (playerId === 1) GameState.player1.donasRecolectadas++;
+      if (playerId === 2) GameState.player2.donasRecolectadas++;
+    });
+
+    this.physics.add.collider(this.player1, this.player2, () => {
+      const diff = this.player1.x - this.player2.x;
+      if (diff > 0) { this.player1.x += 5; this.player2.x -= 5; }
+      else          { this.player1.x -= 5; this.player2.x += 5; }
+    });
+
+    const hud = this.scene.get("HUDScene");
+    if (hud) {
+      hud.events.once("time-up", () => events.emit("time-up"));
+    }
+  }
 
   initCoop() {}
 
-
-
-
-  
   // === UPDATE ===
   update() {
+    // === MOVIMIENTO DE JUGADORES USANDO INPUTSYSTEM ===
+    // Jugador 1 - Movimiento horizontal
+    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player1")) {
+      this.player1.moveLeft();
+    } else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player1")) {
+      this.player1.moveRight();
+    } else {
+      this.player1.stopMoving();
+    }
+
+    // Jugador 1 - Salto (usando NORTH que es SPACE)
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1")) {
+      this.player1.jump();
+    }
+
+    // Jugador 1 - Acción (usando EAST que es E)
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1")) {
+      this.player1.collect();
+    }
+
+    // Jugador 2 - Movimiento horizontal
+    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player2")) {
+      this.player2.moveLeft();
+    } else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player2")) {
+      this.player2.moveRight();
+    } else {
+      this.player2.stopMoving();
+    }
+
+    // Jugador 2 - Salto (usando NORTH que es NUMPAD_ZERO)
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2")) {
+      this.player2.jump();
+    }
+
+    // Jugador 2 - Acción (usando EAST que es ENTER)
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2")) {
+      this.player2.collect();
+    }
+
     this.player1.update();
     this.player2.update();
 
-// === ACTUALIZAR ENEMIGOS ===
-this.enemies.children.iterate((enemy) => {
-  if (enemy) enemy.update();
-});
+    // === ACTUALIZAR ENEMIGOS ===
+    this.enemies.children.iterate((enemy) => {
+      if (enemy) enemy.update();
+    });
 
     // === MOVIMIENTO DE CÁMARA DINÁMICO ===
     const cam = this.cameras.main;
@@ -348,7 +365,7 @@ this.enemies.children.iterate((enemy) => {
     this.bgCloudsMid.y = offsetY + zoomElastic * 0.4;
     this.bgCloudsFront.y = offsetY + zoomElastic * 0.6;
 
-    // === COMBOS DE SALUD === 🆕
+    // === COMBOS DE SALUD ===
     if (!this.combo1.isActive && GameState.player1.lives < 3 && Phaser.Math.Between(0, 1000) < 2) {
       this.combo1.start();
     }
@@ -362,68 +379,63 @@ this.enemies.children.iterate((enemy) => {
     if (!this.player2.invulnerable && this.player2.y > worldHeight + 100) this.playerDied(this.player2, 2);
   }
 
- // === MUERTE / RESPAWN ===
-playerDied(player, id) {
-  const key = id === 1 ? "player1" : "player2";
-  const st = GameState[key];
-  if (!player.active || player.invulnerable) return;
+  // === MUERTE / RESPAWN ===
+  playerDied(player, id) {
+    const key = id === 1 ? "player1" : "player2";
+    const st = GameState[key];
+    if (!player.active || player.invulnerable) return;
 
-  // ✅ DEBUG ANTES del respawn
-  console.log(`💀 playerDied - Jugador ${id}:`);
-  console.log('  - Texture actual:', player.texture?.key);
-  console.log('  - Texture esperada:', GameState[key].character);
-  console.log('  - GameState character:', GameState[key].character);
+    console.log(`💀 playerDied - Jugador ${id}:`);
+    console.log('  - Texture actual:', player.texture?.key);
+    console.log('  - Texture esperada:', GameState[key].character);
+    console.log('  - GameState character:', GameState[key].character);
 
-  if (st.lives > 1) {
-    st.lives--;
-    events.emit("update-life", { playerID: id, vidas: st.lives });
-    player.invulnerable = true;
-    player.body.allowGravity = false;
-    player.body.setVelocity(0, 0);
-    player.body.setAcceleration(0, 0);
-    player.body.checkCollision.none = true;
+    if (st.lives > 1) {
+      st.lives--;
+      events.emit("update-life", { playerID: id, vidas: st.lives });
+      player.invulnerable = true;
+      player.body.allowGravity = false;
+      player.body.setVelocity(0, 0);
+      player.body.setAcceleration(0, 0);
+      player.body.checkCollision.none = true;
 
-    const spawn = id === 1 ? this.spawn1 : this.spawn2;
-    const safeY = Math.max(0, spawn.y - 12);
-    player.setPosition(spawn.x, safeY);
-    player.setActive(true).setVisible(true);
-    
-    // ✅ DEBUG DESPUÉS del respawn
-    console.log(`🔄 RESPAN - Jugador ${id}:`);
-    console.log('  - Texture después de respawn:', player.texture?.key);
-    
-    this.audioManager.play("respawn", { volume: 0.5, rate: 1.1 });
+      const spawn = id === 1 ? this.spawn1 : this.spawn2;
+      const safeY = Math.max(0, spawn.y - 12);
+      player.setPosition(spawn.x, safeY);
+      player.setActive(true).setVisible(true);
+      
+      console.log(`🔄 RESPAN - Jugador ${id}:`);
+      console.log('  - Texture después de respawn:', player.texture?.key);
+      
+      this.audioManager.play("respawn", { volume: 0.5, rate: 1.1 });
 
-    this.tweens.add({
-      targets: player,
-      alpha: 0.3,
-      scaleX: 1.1,
-      scaleY: 0.9,
-      duration: 150,
-      yoyo: true,
-      repeat: 4,
-      ease: "Sine.easeInOut",
-      onComplete: () => { 
-        player.alpha = 1; 
-        player.setScale(1);
-        // ✅ DEBUG después de la animación
-        console.log(`🎭 ANIMACIÓN COMPLETA - Jugador ${id} texture:`, player.texture?.key);
-      },
-    });
+      this.tweens.add({
+        targets: player,
+        alpha: 0.3,
+        scaleX: 1.1,
+        scaleY: 0.9,
+        duration: 150,
+        yoyo: true,
+        repeat: 4,
+        ease: "Sine.easeInOut",
+        onComplete: () => { 
+          player.alpha = 1; 
+          player.setScale(1);
+          console.log(`🎭 ANIMACIÓN COMPLETA - Jugador ${id} texture:`, player.texture?.key);
+        },
+      });
 
-    this.time.delayedCall(1000, () => {
-      player.body.allowGravity = true;
-      player.body.checkCollision.none = false;
-      player.invulnerable = false;
-      player.body.setVelocityY(-120);
-      // ✅ DEBUG después de quitar invulnerabilidad
-      console.log(`🛡️ INVULNERABILIDAD REMOVIDA - Jugador ${id} texture:`, player.texture?.key);
-    });
-    return;
+      this.time.delayedCall(1000, () => {
+        player.body.allowGravity = true;
+        player.body.checkCollision.none = false;
+        player.invulnerable = false;
+        player.body.setVelocityY(-120);
+        console.log(`🛡️ INVULNERABILIDAD REMOVIDA - Jugador ${id} texture:`, player.texture?.key);
+      });
+      return;
+    }
+
+    st.lives = 0;
+    this.handlePlayerDeath(player, id);
   }
-
-  // ✅ USAR EL NUEVO SISTEMA DE MUERTE (SOLO ESTA LÍNEA)
-  st.lives = 0;
-  this.handlePlayerDeath(player, id);
-}
 }

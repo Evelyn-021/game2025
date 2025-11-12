@@ -50,6 +50,11 @@ const config = {
       debug: false,
     },
   },
+
+  // ✅ AGREGAR ESTO: Configuración de input para habilitar gamepads
+  input: {
+    gamepad: true  // Esto habilita el plugin de gamepad
+  }
 };
 
 // Función de inicio del juego

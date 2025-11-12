@@ -125,8 +125,8 @@ export class GameOver extends Scene {
     this.revanchaButton = this.add.text(512, 480, 'REMATCH', {
       fontFamily: '"Press Start 2P", "Courier New", monospace',
       fontSize: 24,
-      color: '#ff3366',
-      stroke: '#000000',
+      color: '#ff33ffff',
+      stroke: '#000000ff',
       strokeThickness: 4,
     })
       .setOrigin(0.5)

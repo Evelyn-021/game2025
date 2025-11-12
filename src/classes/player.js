@@ -2,24 +2,22 @@ import Phaser from "phaser";
 import { events } from "./GameEvents.js";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, texture, keys, id) {
+  constructor(scene, x, y, texture, id) {
     super(scene, x, y, texture);
 
-    // === CONFIGURACIÓN BÁSICA ===
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.id = id; // 1 o 2
-    this.keys = keys; // teclas asignadas
-    this.textureName = texture; // "Pinky" o "Lamb"
+    this.id = id;
+    this.textureName = texture;
+    this.playerKey = `player${id}`;
     
-    // ✅ SOLO ESTE LOG ES SEGURO
     console.log(`🎮 Player ${id} creado con texture: ${texture}`);
     
     this.speed = 160;
     this.jumpStrength = -280;
     this.score = 0;
-    this.canMove = true; // ✅ se puede mover por defecto
+    this.canMove = true;
     this.setCollideWorldBounds(true);
 
     // === ANIMACIONES ===
@@ -27,38 +25,38 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.play(`${this.textureName}_idle`, true);
   }
 
-  update() {
-    // 🚫 si no puede moverse (por combo o stun), no hace nada
-    if (!this.canMove) {
-      this.setVelocityX(0);
-      this.play(`${this.textureName}_idle`, true);
-      return;
-    }
-
-    const { left, right, up } = this.keys;
-
-    // === MOVIMIENTO HORIZONTAL ===
-    if (left.isDown) {
-      this.setVelocityX(-this.speed);
-      this.flipX = true;
+  // === MÉTODOS DE MOVIMIENTO ===
+  moveLeft() {
+    this.setVelocityX(-this.speed);
+    this.flipX = true;
+    if (this.body && this.body.onFloor()) {
       this.play(`${this.textureName}_walk`, true);
-    } else if (right.isDown) {
-      this.setVelocityX(this.speed);
-      this.flipX = false;
+    }
+  }
+
+  moveRight() {
+    this.setVelocityX(this.speed);
+    this.flipX = false;
+    if (this.body && this.body.onFloor()) {
       this.play(`${this.textureName}_walk`, true);
-    } else {
-      this.setVelocityX(0);
+    }
+  }
+
+  stopMoving() {
+    this.setVelocityX(0);
+    if (this.body && this.body.onFloor()) {
       this.play(`${this.textureName}_idle`, true);
     }
+  }
 
-    // === SALTO ===
-    if (up.isDown && this.body.blocked.down) {
+  jump() {
+    if (this.body && this.body.blocked && this.body.blocked.down) {
       this.setVelocityY(this.jumpStrength);
       this.play(`${this.textureName}_jump`, true);
     }
   }
 
-  collectDonut() {
+  collect() {
     this.score++;
     events.emit("update-score", {
       playerID: this.id,
@@ -67,11 +65,40 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  update() {
+    // Tu lógica de update existente puede mantenerse
+    if (!this.canMove) {
+      this.stopMoving();
+      return;
+    }
+
+    // O eliminar esta parte si el movimiento se controla desde Game.js
+    const movingLeft = this.scene.inputSystem?.isPressed?.("left", this.playerKey);
+    const movingRight = this.scene.inputSystem?.isPressed?.("right", this.playerKey);
+
+    if (movingLeft) {
+      this.moveLeft();
+    } else if (movingRight) {
+      this.moveRight();
+    } else {
+      this.stopMoving();
+    }
+
+    const jumping = this.scene.inputSystem?.isPressed?.("north", this.playerKey);
+    if (jumping && this.body.blocked.down) {
+      this.jump();
+    }
+
+    const action = this.scene.inputSystem?.isJustPressed?.("east", this.playerKey);
+    if (action) {
+      this.collect();
+    }
+  }
+
   // === CREACIÓN DE ANIMACIONES ===
   createAnimations(scene) {
     const key = this.textureName;
 
-    // ✅ Versión segura sin logs
     if (!scene.anims.exists(`${key}_idle`)) {
       scene.anims.create({
         key: `${key}_idle`,
