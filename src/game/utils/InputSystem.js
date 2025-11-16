@@ -21,6 +21,12 @@ export default class InputSystem {
     this.gamepad1 = null;
     this.gamepad2 = null;
 
+    // ✅ AGREGAR: Estados previos para detección de "just pressed"
+    this.previousButtonStates = {
+      player1: {},
+      player2: {}
+    };
+
     // Mapeo completo por jugador
     this.mapping = {
       player1: {
@@ -148,7 +154,7 @@ export default class InputSystem {
       console.log("✅ Plugin de gamepad habilitado");
       
       this.input.gamepad.on("connected", (pad) => {
-        console.log(`🎮 Gamepad conectado: ${pad.id}`);
+        console.log(`🎮 Gamepad conectado: ${pad.id} - Botones: ${pad.buttons.length}`);
         
         if (!this.gamepad1) {
           this.gamepad1 = pad;
@@ -271,7 +277,18 @@ export default class InputSystem {
     return this.mapping[player][action].gamepad.some((input) => {
       if (input.type === "button") {
         const button = gamepad.buttons[input.index];
-        return button && button.pressed && button.value === 1.0;
+        if (!button) return false;
+        
+        // ✅ CORRECCIÓN: Usar estado anterior para "just pressed"
+        const buttonKey = `button_${input.index}`;
+        const wasPressed = this.previousButtonStates[player][buttonKey] || false;
+        const isPressed = button.pressed;
+        
+        // Actualizar estado anterior
+        this.previousButtonStates[player][buttonKey] = isPressed;
+        
+        return isPressed && !wasPressed;
+        
       } else if (input.type === "axis") {
         const axisValue = gamepad.axes[input.index].getValue();
         const isPressed = input.dir > 0 ? axisValue > 0.5 : axisValue < -0.5;
@@ -286,7 +303,13 @@ export default class InputSystem {
     });
   }
 
-  // Método de debug para gamepads
+  // ✅ NUEVO MÉTODO: Actualizar estados anteriores (llamar en cada frame)
+  update() {
+    // Esto asegura que los estados se mantengan actualizados
+    // Se puede llamar desde el juego principal en cada frame
+  }
+
+  // Método de debug mejorado para gamepads
   debugGamepad(player = "player1") {
     const gamepad = player === "player1" ? this.gamepad1 : this.gamepad2;
     if (!gamepad) {
@@ -296,23 +319,33 @@ export default class InputSystem {
 
     const pressedButtons = [];
     gamepad.buttons.forEach((button, index) => {
-      if (button.pressed) {
-        pressedButtons.push({ index, value: button.value });
+      if (button && button.pressed) {
+        pressedButtons.push({ 
+          index, 
+          value: button.value,
+          pressed: button.pressed 
+        });
       }
     });
 
     const activeAxes = [];
     gamepad.axes.forEach((axis, index) => {
-      const value = axis.getValue();
-      if (Math.abs(value) > 0.1) {
-        activeAxes.push({ index, value });
+      if (axis) {
+        const value = axis.getValue();
+        if (Math.abs(value) > 0.1) {
+          activeAxes.push({ index, value });
+        }
       }
     });
 
     console.log(`🎮 Debug ${player}:`, {
       id: gamepad.id,
+      totalButtons: gamepad.buttons.length,
+      totalAxes: gamepad.axes.length,
       pressedButtons,
       activeAxes
     });
+
+    return { pressedButtons, activeAxes };
   }
 }

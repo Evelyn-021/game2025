@@ -20,24 +20,26 @@ export class Game extends Scene {
     // === SISTEMA DE ENTRADA GLOBAL ===
     this.inputSystem = new InputSystem(this.input);
 
-    // J1 - WASD + SPACE (salto) + E (acción)
+    // J1 - WASD + SPACE (salto) + E (acción/recolectar) + Q (ataque - para coop)
     this.inputSystem.configureKeyboard({
       [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.A],
       [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.D],
       [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.W],
       [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.S],
-      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.SPACE], // ← SALTO
-      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.E],     // acción
+      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.SPACE], // SALTO
+      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.E],     // ACCIÓN/RECOLECTAR
+      [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.Q],     // ATAQUE (para coop)
     }, "player1");
 
-    // J2 - Flechas + 0 del numpad (salto) + ENTER (acción)
+    // J2 - Flechas + 0 del numpad (salto) + ENTER (acción/recolectar) + M (ataque - para coop)
     this.inputSystem.configureKeyboard({
       [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.LEFT],
       [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.RIGHT],
       [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.UP],
       [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.DOWN],
-      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO], // ← SALTO
-      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.ENTER],       // acción
+      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO], // SALTO
+      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.ENTER],       // ACCIÓN/RECOLECTAR
+      [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.M],           // ATAQUE (para coop)
     }, "player2");
 
     // === SISTEMAS GLOBALES/ AUDIO MANAGER ===
@@ -88,6 +90,15 @@ export class Game extends Scene {
     const objetos = map.getObjectLayer("objetos").objects;
     this.spawn1 = objetos.find(o => o.name === "player");
     this.spawn2 = objetos.find(o => o.name === "player2");
+
+    // === CÁMARA ===
+    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    // ⭐ DEADZONE REAL, LA BUENA ⭐
+    cam.setDeadzone(
+      this.scale.width * 0.45,
+      this.scale.height * 0.40
+    );
 
     // === PERSONAJES ===
     const char1 = GameState.player1.character || "Pinky";
@@ -146,9 +157,6 @@ export class Game extends Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       ServiceLocator.clear();
     });
-
-    // === CÁMARA ===
-    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // === HUD ===
     this.scene.launch("HUDScene");
@@ -278,7 +286,16 @@ export class Game extends Scene {
     }
   }
 
-  initCoop() {}
+  initCoop() {
+    // En modo coop, agregar lógica de ataque
+    this.add.text(this.scale.width / 2, 40, "MODO COOPERATIVO", {
+      fontFamily: "Arial Black",
+      fontSize: 32,
+      color: "#66ff66",
+      stroke: "#000",
+      strokeThickness: 6,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
+  }
 
   // === UPDATE ===
   update() {
@@ -297,9 +314,14 @@ export class Game extends Scene {
       this.player1.jump();
     }
 
-    // Jugador 1 - Acción (usando EAST que es E)
+    // Jugador 1 - Acción/Recolectar (usando EAST que es E)
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1")) {
       this.player1.collect();
+    }
+
+    // Jugador 1 - Ataque (solo en modo coop, usando SOUTH que es Q)
+    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1")) {
+      this.player1.attack(); // Necesitarás implementar este método
     }
 
     // Jugador 2 - Movimiento horizontal
@@ -316,9 +338,14 @@ export class Game extends Scene {
       this.player2.jump();
     }
 
-    // Jugador 2 - Acción (usando EAST que es ENTER)
+    // Jugador 2 - Acción/Recolectar (usando EAST que es ENTER)
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2")) {
       this.player2.collect();
+    }
+
+    // Jugador 2 - Ataque (solo en modo coop, usando SOUTH que es M)
+    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player2")) {
+      this.player2.attack(); // Necesitarás implementar este método
     }
 
     this.player1.update();

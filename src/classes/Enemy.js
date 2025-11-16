@@ -23,6 +23,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.detectionRange = 120;
     this.attackRange = 70;
 
+    // === PROPIEDADES NUEVAS PARA MODO COOP ===
+    this.isCoopEnemy = false;
+    this.coopHealth = 3;
+    this.coopSpeed = 45;
+    this.isTakingDamage = false; // Nuevo estado para daño
+
     this.setOrigin(0.5, 1);
     this.setScale(1.15);
     this.setCollideWorldBounds(true);
@@ -34,6 +40,132 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     // ✅ Mover collisions al final del constructor
     this.setupCollisions();
+  }
+
+  // === MÉTODO NUEVO PARA CONFIGURAR PROPIEDADES COOP ===
+  setCoopProperties(health = 3, speed = 45) {
+    this.isCoopEnemy = true;
+    this.coopHealth = health;
+    this.coopSpeed = speed;
+    this.hp = this.coopHealth;
+    
+    if (speed !== this.speed) {
+      this.speed = speed;
+    }
+    
+    console.log(`✅ ${this.tipo} configurado para coop - HP: ${this.hp}, Velocidad: ${this.coopSpeed}`);
+  }
+
+  // === MÉTODO NUEVO PARA RECIBIR DAÑO EN MODO COOP ===
+  takeDamage(amount = 1) {
+    // Solo funciona para enemigos coop
+    if (!this.isCoopEnemy) {
+      console.log("❌ Este enemigo no está configurado para modo coop");
+      return false;
+    }
+    
+    if (this.isTakingDamage) {
+      return false;
+    }
+    
+    console.log(`🎯 ${this.tipo} recibió daño. HP antes: ${this.hp}`);
+    
+    this.hp -= amount;
+    this.isTakingDamage = true;
+    
+    console.log(`💥 ${this.tipo} HP después: ${this.hp}`);
+
+    // ✅ ANIMACIÓN DE DAÑO
+    const hurtAnim = `${this.tipo}_hurt`;
+    if (this.scene.anims.exists(hurtAnim)) {
+      console.log(`🎬 Reproduciendo animación: ${hurtAnim}`);
+      this.play(hurtAnim, true);
+      
+      this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.isTakingDamage = false;
+        if (this.active && this.hp > 0) {
+          this.play(`${this.tipo}_idle`, true);
+        }
+      });
+    } else {
+      console.log(`⚠️ No se encontró animación: ${hurtAnim}, usando tint`);
+      this.setTint(0xff0000);
+      this.scene.time.delayedCall(200, () => {
+        if (this.active) {
+          this.clearTint();
+          this.isTakingDamage = false;
+        }
+      });
+    }
+
+    // Verificar si murió
+    if (this.hp <= 0) {
+      console.log(`💀 ${this.tipo} murió! Llamando a die()`);
+      this.die();
+      return true;
+    }
+    
+    return false;
+  }
+
+  // === MÉTODO NUEVO PARA MORIR EN MODO COOP ===
+  die() {
+    // ✅ ANIMACIÓN DE MUERTE si existe
+    const deathAnim = `${this.tipo}_death`;
+    if (this.scene.anims.exists(deathAnim)) {
+      this.play(deathAnim, true);
+      
+      this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.hideForRespawn();
+      });
+    } else {
+      // Si no hay animación de muerte, ocultar inmediatamente
+      this.hideForRespawn();
+    }
+
+    // Reproducir sonido de muerte si está disponible
+    if (this.audioManager) {
+      this.audioManager.play("enemy_death", { volume: 0.6 });
+    }
+  }
+
+  // === MÉTODO AUXILIAR PARA OCULTAR ENEMIGO ===
+  hideForRespawn() {
+    this.setActive(false);
+    this.setVisible(false);
+    this.body.enable = false;
+    this.isAttacking = false;
+    this.isTakingDamage = false;
+
+    // Respawn automático después de 3 segundos
+    this.scene.time.delayedCall(3000, () => {
+      if (this.scene && this.active === false) {
+        this.respawn();
+      }
+    });
+  }
+
+  // === MÉTODO NUEVO PARA RESPAWNEAR ===
+  respawn() {
+    if (!this.scene) return;
+    
+    // Posición aleatoria para respawn
+    const spawnX = Phaser.Math.Between(100, 700);
+    const spawnY = 100;
+    
+    this.setPosition(spawnX, spawnY);
+    this.setActive(true);
+    this.setVisible(true);
+    this.body.enable = true;
+    this.hp = this.coopHealth;
+    this.clearTint();
+    this.isAttacking = false;
+    this.isTakingDamage = false;
+    
+    // Reiniciar animación
+    this.play(`${this.tipo}_idle`, true);
+    
+    console.log(`🔄 ${this.tipo} respawneado en (${spawnX}, ${spawnY})`);
   }
 
   setupCollisions() {
@@ -55,16 +187,16 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // ✅ Detección de daño y ataque (SOLO overlap, NO event listener)
     if (this.playerTargets.length > 0) {
       this.scene.physics.add.overlap(this, this.playerTargets, (enemy, player) => {
-        if (!enemy.isAttacking && !player.invulnerable) {
+        if (!enemy.isAttacking && !player.invulnerable && !enemy.isTakingDamage) {
           enemy.attack(player);
         }
       });
     }
-
   }
 
   update() {
-    if (!this.active || this.isAttacking || !this.scene) return;
+    // No actualizar si está recibiendo daño o no está activo
+    if (!this.active || this.isAttacking || !this.scene || this.isTakingDamage) return;
 
     const target = this.detectPlayer();
     if (target) {
@@ -81,14 +213,18 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (verticalDist < 40 && horizontalDist < this.detectionRange) {
         this.direction = target.x < this.x ? -1 : 1;
         this.setFlipX(this.direction < 0);
-        this.setVelocityX(this.speed * this.direction);
+        
+        const currentSpeed = this.isCoopEnemy ? this.coopSpeed : this.speed;
+        this.setVelocityX(currentSpeed * this.direction);
+        
         this.play(`${this.tipo}_walk`, true);
         return;
       }
     }
 
     // === PATRULLAJE ===
-    this.setVelocityX(this.speed * this.direction);
+    const currentSpeed = this.isCoopEnemy ? this.coopSpeed : this.speed;
+    this.setVelocityX(currentSpeed * this.direction);
     this.play(`${this.tipo}_walk`, true);
 
     // === DETECCIÓN DE BORDES ===
@@ -96,7 +232,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const rayX = this.x + this.direction * rayLength;
     const rayY = this.y + this.height / 2;
 
-    // ✅ Verificar que plataformas existe
     if (this.scene.plataformas) {
       const tileBelow = this.scene.plataformas.getTileAtWorldXY(rayX, rayY + 10);
       const blockedLeft = this.body.blocked.left;
@@ -137,7 +272,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.audioManager.play("bitemonster", { volume: 0.5 });
     }
 
-    // ✅ Verificar que scene.tweens existe
     this.scene.time.delayedCall(300, () => {
       if (!player || !this.scene) return;
       
@@ -145,7 +279,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       const sameHeight = Math.abs(this.y - player.y) < 40;
       
       if (dist < this.attackRange && sameHeight && !player.invulnerable) {
-        // ✅ Emitir ataque - el Game.js escuchará esto
         this.scene.events.emit("enemy-attack", player);
       }
     });
@@ -162,6 +295,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const key = this.texture.key;
     if (scene.anims.exists(`${key}_idle`)) return;
 
+    // Animación idle
     scene.anims.create({
       key: `${key}_idle`,
       frames: scene.anims.generateFrameNames(key, {
@@ -174,27 +308,55 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       repeat: -1,
     });
 
+    // Animación walk
     scene.anims.create({
       key: `${key}_walk`,
       frames: scene.anims.generateFrameNames(key, {
         prefix: `${key} `,
         start: 4,
-        end: 7,
+        end: key === 'ooze' ? 7 : 9,
         suffix: ".aseprite",
       }),
       frameRate: 8,
       repeat: -1,
     });
 
+    // Animación attack
     scene.anims.create({
       key: `${key}_attack`,
       frames: scene.anims.generateFrameNames(key, {
         prefix: `${key} `,
-        start: 8,
-        end: 11,
+        start: key === 'bear' ? 10 : 8,
+        end: key === 'bear' ? 15 : 11,
         suffix: ".aseprite",
       }),
       frameRate: 10,
+      repeat: 0,
+    });
+
+    // ✅ ANIMACIÓN HURT (daño)
+    scene.anims.create({
+      key: `${key}_hurt`,
+      frames: scene.anims.generateFrameNames(key, {
+        prefix: `${key} `,
+        start: key === 'bear' ? 16 : 12,
+        end: key === 'bear' ? 19 : 15,
+        suffix: ".aseprite",
+      }),
+      frameRate: 8,
+      repeat: 0,
+    });
+
+    // ✅ ANIMACIÓN DEATH (muerte)
+    scene.anims.create({
+      key: `${key}_death`,
+      frames: scene.anims.generateFrameNames(key, {
+        prefix: `${key} `,
+        start: key === 'bear' ? 20 : 16,
+        end: key === 'bear' ? 25 : 19,
+        suffix: ".aseprite",
+      }),
+      frameRate: 8,
       repeat: 0,
     });
   }

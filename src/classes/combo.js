@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { events } from "./GameEvents.js";
 import { GameState } from "../game/state/GameState.js";
-import { INPUT_ACTIONS } from "../game/utils/InputSystem.js"; // Asegúrate de importar esto
+import { INPUT_ACTIONS } from "../game/utils/InputSystem.js";
 
 export default class Combo {
   constructor(scene, player) {
@@ -19,6 +19,9 @@ export default class Combo {
     
     // Para detectar input del joystick
     this.inputHandler = null;
+    this.currentArrow = null;
+    this.joystickCooldown = false;
+    this.lastStickState = { x: 0, y: 0 };
   }
 
   start() {
@@ -47,6 +50,7 @@ export default class Combo {
 
     const imgKey = this.getArrowKey(dir);
     const arrow = this.scene.add.image(x, y - 200, imgKey).setScale(0.9).setDepth(100);
+    this.currentArrow = arrow;
 
     this.scene.tweens.add({
       targets: arrow,
@@ -56,75 +60,67 @@ export default class Combo {
     });
 
     this.expected = dir;
+    this.joystickCooldown = false;
+    this.lastStickState = { x: 0, y: 0 };
 
     // ✅ DETECCIÓN MIXTA: Teclado + Joystick
     this.setupInputDetection(arrow);
     
     // Timeout por si no presiona nada
     this.scene.time.delayedCall(1800, () => {
-      if (arrow.active) this.fail(arrow);
+      if (this.active && arrow.active) this.fail(arrow);
     });
   }
 
   setupInputDetection(arrow) {
     // Limpiar handler anterior
-    if (this.inputHandler) {
-      this.inputHandler.destroy();
-    }
+    this.cleanupInputHandlers();
 
-    // Handler para teclado
-    const keyboardHandler = this.scene.input.keyboard.once("keydown", (e) => {
+    // Handler para teclado (usando once para auto-remover)
+    this.keyboardHandler = this.scene.input.keyboard.once("keydown", (e) => {
       this.handleKeyboardInput(e, arrow);
     });
 
-    // Handler para joystick (verificación continua en update)
-    this.inputHandler = {
-      destroy: () => {
-        keyboardHandler.remove();
-        this.inputHandler = null;
-      }
-    };
+    // Handler para joystick se maneja en update
+  }
+
+  handleKeyboardInput(event, arrow) {
+    const pressed = this.mapKey(event.code);
+    if (pressed && !this.joystickCooldown) {
+      this.processInput(pressed, arrow);
+    }
   }
 
   update() {
-    if (!this.active || !this.expected) return;
+    if (!this.active || !this.expected || !this.currentArrow || this.joystickCooldown) return;
 
-    // ✅ VERIFICAR JOYSTICK CADA FRAME
+    // ✅ VERIFICAR JOYSTICK - USANDO LOS MÉTODOS EXISTENTES DEL INPUT SYSTEM
     const inputSystem = this.scene.inputSystem;
     if (!inputSystem) return;
 
+    const playerKey = this.player.playerKey; // "player1" o "player2"
     let joystickInput = null;
 
-    // Verificar dirección del joystick
-    if (inputSystem.isJustPressed(INPUT_ACTIONS.LEFT, this.player.playerKey)) {
+    // Usar los métodos existentes del InputSystem para detección "just pressed"
+    if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey)) {
       joystickInput = "left";
-    } else if (inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT, this.player.playerKey)) {
+    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) {
       joystickInput = "right";
-    } else if (inputSystem.isJustPressed(INPUT_ACTIONS.UP, this.player.playerKey)) {
+    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey)) {
       joystickInput = "up";
-    } else if (inputSystem.isJustPressed(INPUT_ACTIONS.DOWN, this.player.playerKey)) {
+    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey)) {
       joystickInput = "down";
     }
 
     // Procesar input del joystick
     if (joystickInput && joystickInput === this.expected) {
-      this.handleJoystickInput(joystickInput);
-    }
-  }
-
-  handleKeyboardInput(event, arrow) {
-    const pressed = this.mapKey(event.code);
-    this.processInput(pressed, arrow);
-  }
-
-  handleJoystickInput(direction) {
-    // Encontrar la flecha activa actual
-    const arrows = this.scene.children.getChildren().filter(child => 
-      child.texture && ['flecha1', 'flecha2', 'flecha3', 'flecha4'].includes(child.texture.key)
-    );
-    
-    if (arrows.length > 0) {
-      this.processInput(direction, arrows[0]);
+      this.joystickCooldown = true;
+      this.processInput(joystickInput, this.currentArrow);
+      
+      // Cooldown para evitar múltiples detecciones
+      this.scene.time.delayedCall(300, () => {
+        this.joystickCooldown = false;
+      });
     }
   }
 
@@ -136,16 +132,17 @@ export default class Combo {
         targets: arrow,
         alpha: 0,
         duration: 200,
-        onComplete: () => arrow.destroy(),
+        onComplete: () => {
+          arrow.destroy();
+          this.currentArrow = null;
+        },
       });
 
       this.currentIndex++;
       this.delay = Math.max(this.delay - this.speedBoost, this.minDelay);
       
-      // Limpiar input handler antes del próximo
-      if (this.inputHandler) {
-        this.inputHandler.destroy();
-      }
+      // Limpiar input handlers antes del próximo
+      this.cleanupInputHandlers();
       
       this.scene.time.delayedCall(this.delay, () => this.showNextArrow());
     } else {
@@ -209,9 +206,10 @@ export default class Combo {
       this.player.canMove = true;
       this.active = false;
       this.comboLength = Math.min(6, this.comboLength + 1);
-      if (this.inputHandler) {
-        this.inputHandler.destroy();
-      }
+      this.cleanupInputHandlers();
+      this.currentArrow = null;
+      this.joystickCooldown = false;
+      this.lastStickState = { x: 0, y: 0 };
     });
   }
 
@@ -221,15 +219,33 @@ export default class Combo {
       targets: arrow,
       alpha: 0,
       duration: 300,
-      onComplete: () => arrow.destroy(),
+      onComplete: () => {
+        arrow.destroy();
+        this.currentArrow = null;
+      },
     });
 
     this.delay = 1200;
     this.player.canMove = true;
     this.active = false;
     
-    if (this.inputHandler) {
-      this.inputHandler.destroy();
+    this.cleanupInputHandlers();
+    this.joystickCooldown = false;
+    this.lastStickState = { x: 0, y: 0 };
+  }
+
+  cleanupInputHandlers() {
+    // Limpiar handler de teclado si existe
+    if (this.keyboardHandler) {
+      // No necesitamos removerlo manualmente porque usamos once()
+      this.keyboardHandler = null;
+    }
+  }
+
+  destroy() {
+    this.cleanupInputHandlers();
+    if (this.currentArrow && this.currentArrow.active) {
+      this.currentArrow.destroy();
     }
   }
 }

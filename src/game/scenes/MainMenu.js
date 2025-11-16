@@ -1,4 +1,4 @@
-import { Scene } from "phaser";
+import { Scene } from "phaser"; 
 import Background from "../../classes/Background.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
 
@@ -15,7 +15,7 @@ export class MainMenu extends Scene {
     // === Logo ===
     this.add.image(this.scale.width / 2, 250, "logo").setScale(0.6);
 
-    // === Botón único ===
+    // === Botón START GAME ===
     this.startButton = this.add
       .text(this.scale.width / 2, 560, "START GAME", {
         fontFamily: '"Press Start 2P", "Courier New", monospace',
@@ -27,19 +27,18 @@ export class MainMenu extends Scene {
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
-    // === Input System - CON JOYSTICK ===
+    // === Input System - Joystick + Teclado ===
     this.inputSystem = new InputSystem(this.input);
-    
-    // Configurar teclado Y joystick
+
     this.inputSystem.configureKeyboardByString({
-      [INPUT_ACTIONS.UP]: ['W', 'UP'],        // Joystick arriba
-      [INPUT_ACTIONS.DOWN]: ['S', 'DOWN'],    // Joystick abajo  
-      [INPUT_ACTIONS.LEFT]: ['A', 'LEFT'],    // Joystick izquierda
-      [INPUT_ACTIONS.RIGHT]: ['D', 'RIGHT'],  // Joystick derecha
-      [INPUT_ACTIONS.NORTH]: ['ENTER', 'SPACE'], // Botón norte gamepad
-      [INPUT_ACTIONS.SOUTH]: ['X', 'ESC'],       // Botón sur gamepad
-      [INPUT_ACTIONS.EAST]: ['E'],             // Botón este gamepad
-      [INPUT_ACTIONS.WEST]: ['Q']              // Botón oeste gamepad
+      [INPUT_ACTIONS.UP]: ['W', 'UP'],
+      [INPUT_ACTIONS.DOWN]: ['S', 'DOWN'],
+      [INPUT_ACTIONS.LEFT]: ['A', 'LEFT'],
+      [INPUT_ACTIONS.RIGHT]: ['D', 'RIGHT'],
+      [INPUT_ACTIONS.NORTH]: ['ENTER', 'SPACE'],
+      [INPUT_ACTIONS.SOUTH]: ['X', 'ESC'],
+      [INPUT_ACTIONS.EAST]: ['E'],
+      [INPUT_ACTIONS.WEST]: ['Q']
     });
 
     // === Eventos de mouse ===
@@ -47,9 +46,9 @@ export class MainMenu extends Scene {
     this.startButton.on("pointerout", () => this.highlightButton(false));
     this.startButton.on("pointerdown", () => this.startGame());
 
-    // === Instrucciones ACTUALIZADAS ===
-    this.add
-      .text(this.scale.width / 2, 620, "PRESS ANY BUTTON OR USE JOYSTICK TO START", {
+    // === Texto de instrucciones ===
+    this.pressText = this.add
+      .text(this.scale.width / 2, 620, "Presiona A o X para comenzar", {
         fontFamily: '"Press Start 2P", "Courier New", monospace',
         fontSize: 14,
         color: "#ffff00",
@@ -58,22 +57,33 @@ export class MainMenu extends Scene {
       })
       .setOrigin(0.5);
 
-    // Efecto inicial
+    // === Efecto de parpadeo (blink) ===
+    this.tweens.add({
+      targets: this.pressText,
+      alpha: { from: 1, to: 0.2 },
+      duration: 700,
+      yoyo: true,
+      repeat: -1
+    });
+
+    // Efecto inicial del botón
     this.highlightButton(true);
-    
+
     console.log("🎮 MainMenu listo - Joystick y teclado configurados");
   }
 
   update() {
-    // ✅ DETECCIÓN COMPLETA - CUALQUIER BOTÓN O DIRECCIÓN DEL JOYSTICK
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH) || 
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.WEST) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.UP) ||     // Joystick arriba
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.DOWN) ||   // Joystick abajo
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT) ||   // Joystick izquierda  
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT)) {  // Joystick derecha
+    // === Cualquier acción del joystick o teclado inicia ===
+    if (
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.WEST) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.UP) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.DOWN) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT) ||
+      this.inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT)
+    ) {
       console.log("🎯 Input detectado - Iniciando juego");
       this.startGame();
     }
@@ -96,7 +106,7 @@ export class MainMenu extends Scene {
   startGame() {
     console.log("🚀 Iniciando CharacterSelect...");
     this.startButton.setColor("#00ff00");
-    
+
     this.time.delayedCall(300, () => {
       this.scene.start("CharacterSelect");
     });

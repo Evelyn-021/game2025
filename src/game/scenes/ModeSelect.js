@@ -8,64 +8,72 @@ export class ModeSelect extends Scene {
   }
 
   create() {
-    this.add
-      .text(512, 120, "Selecciona el modo de juego", {
-        fontSize: "32px",
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 6,
-      })
-      .setOrigin(0.5);
 
-    this.vsBtn = this.add.image(360, 384, "SelectVersus").setScale(1.1);
-    this.coopBtn = this.add.image(664, 384, "SelectCoop").setScale(1.1);
+    const W = this.scale.width;
+    const H = this.scale.height;
+
+    // === Título con Press Start 2P ===
+    this.add.text(W / 2, H * 0.12, "SELECCIONA EL MODO DE JUEGO", {
+      fontFamily: '"Press Start 2P", "Courier New", monospace',
+      fontSize: "24px",
+      color: "#ffffff",
+      stroke: "#000000",
+      strokeThickness: 6,
+      letterSpacing: 1
+    }).setOrigin(0.5);
+
+    // === Distancia fija para acercarlos ===
+    const dist = 170;  // ajústalo si querés más o menos cerca
+    const yCenter = H * 0.52;
+
+    this.vsBtn  = this.add.image(W / 2 - dist, yCenter, "SelectVersus").setScale(1.1);
+    this.coopBtn = this.add.image(W / 2 + dist, yCenter, "SelectCoop").setScale(1.1);
+
     this.buttons = [this.vsBtn, this.coopBtn];
     this.selectedIndex = 0;
 
-    // === INPUT SYSTEM SIMPLE ===
+    // === Input System ===
     this.inputSystem = new InputSystem(this.input);
     this.inputSystem.configureKeyboardByString({
-      [INPUT_ACTIONS.LEFT]: ["LEFT", "A"],
+      [INPUT_ACTIONS.LEFT]:  ["LEFT", "A"],
       [INPUT_ACTIONS.RIGHT]: ["RIGHT", "D"],
-      [INPUT_ACTIONS.NORTH]: ["ENTER", "SPACE"] // Seleccionar
+      [INPUT_ACTIONS.NORTH]: ["ENTER", "SPACE"]
     });
 
     this.updateSelection();
 
-    this.add
-      .text(512, 650, "← → para navegar, ENTER para seleccionar", {
-        fontSize: "16px",
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
+    // === Instrucciones con Press Start 2P ===
+    this.add.text(W / 2, H * 0.90, "← → PARA NAVEGAR — ENTER PARA SELECCIONAR", {
+      fontFamily: '"Press Start 2P", "Courier New", monospace',
+      fontSize: "12px",
+      color: "#ffff00",
+      stroke: "#000000",
+      strokeThickness: 3
+    }).setOrigin(0.5);
   }
 
   update() {
-    // Navegación
+    // Navegar
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT)) {
       this.selectedIndex = 0;
       this.updateSelection();
     }
-    
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT)) {
       this.selectedIndex = 1;
       this.updateSelection();
     }
-    
-    // Seleccionar modo (también funciona con gamepad)
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST) ||
-        this.inputSystem.isJustPressed(INPUT_ACTIONS.WEST)) {
+
+    // Seleccionar modo
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH)) {
       const mode = this.selectedIndex === 0 ? "versus" : "coop";
       this.selectMode(mode);
     }
   }
 
   updateSelection() {
-    this.buttons.forEach((sprite, i) => {
-      sprite.setScale(i === this.selectedIndex ? 1.3 : 1.1);
-      sprite.setTint(i === this.selectedIndex ? 0xffff99 : 0xffffff);
+    this.buttons.forEach((btn, i) => {
+      btn.setScale(i === this.selectedIndex ? 1.3 : 1.1);
+      btn.setTint(i === this.selectedIndex ? 0xffff99 : 0xffffff);
     });
   }
 

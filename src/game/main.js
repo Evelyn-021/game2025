@@ -13,21 +13,21 @@ import { GameOver } from './scenes/GameOver.js';
 import { VictoryScene } from "./scenes/VictoryScene.js";
 import { EmpateScene } from "./scenes/EmpateScene.js";
 
-// Configuración del juego
 const config = {
-  type: AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
-  parent: 'game-container',
-  backgroundColor: '#43474bff',
+  type: Phaser.AUTO,
 
-  // Ajuste de escala para pantallas de distintos tamaños
+  // 🎯 Resolución base fija para que el arte no se deforme
+  width: 1280,
+  height: 720,
+
+  parent: 'game-container',
+  backgroundColor: '#43474b',
+
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.FIT,        // 🔥 Mantiene proporciones siempre
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 
-  // ⚙️ Registro de todas tus escenas
   scene: [
     Boot,
     Preloader,
@@ -42,7 +42,6 @@ const config = {
     EmpateScene,
   ],
 
-  // 🧲 Configuración de físicas (arcade simple)
   physics: {
     default: 'arcade',
     arcade: {
@@ -51,12 +50,10 @@ const config = {
     },
   },
 
-  // ✅ AGREGAR ESTO: Configuración de input para habilitar gamepads
   input: {
-    gamepad: true  // Esto habilita el plugin de gamepad
+    gamepad: true
   }
 };
-
 // Función de inicio del juego
 const StartGame = (parent) => {
   // ⚠️ Importante: usamos Phaser.Game, no "Game" directamente
