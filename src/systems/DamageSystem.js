@@ -51,6 +51,31 @@ if (state.lives <= 0) {
   events.emit("player-dead", { player, playerID });
 }
 
+
+
+
 }
+
+  // =====================================================
+  // DAÑO A ENEMIGOS (Modo Coop)
+  // =====================================================
+  applyDamageToEnemy(enemy, attackerId) {
+    if (!enemy || !enemy.active) return false;
+
+    // Solo enemigos marcados como cooperativos pueden recibir daño
+    if (!enemy.isCoopEnemy) return false;
+
+    // Aplicar daño usando su propio método
+    const died = enemy.takeDamage(1);
+
+    // Sonido de golpe
+    const audio = ServiceLocator.get("audio");
+    if (audio) audio.play("daño", { volume: 0.5 });
+
+    console.log(`🔥 Enemigo golpeado por Player ${attackerId}`);
+
+    return died;
+  }
+
 
 }

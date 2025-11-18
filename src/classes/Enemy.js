@@ -167,6 +167,35 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+
+
+
+  
+// =============================================================
+// CHEQUEAR SI EL JUGADOR LO ESTÁ ATACANDO
+// =============================================================
+checkPlayerHit(player) {
+  if (!player || !player.isAttacking || !this.active || this.isTakingDamage) return false;
+
+  // Verificar distancia del ataque
+  const dist = Phaser.Math.Distance.Between(this.x, this.y, player.x, player.y);
+  if (dist > 50) return false; // rango de ataque del jugador
+  
+  // Verificar orientación (opcional)
+  const facingOK =
+    (player.flipX && player.x > this.x) ||
+    (!player.flipX && player.x < this.x);
+
+  if (!facingOK) return false;
+
+  // Aplicar daño
+  return this.takeDamage(1);
+}
+
+
+
+
+
   // ✅ SISTEMA DE DAÑO (simplificado)
   takeDamage(amount = 1) {
     if (!this.isCoopEnemy || this.isTakingDamage || !this.active) return false;

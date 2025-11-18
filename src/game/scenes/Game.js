@@ -146,6 +146,15 @@ export class Game extends Scene {
       if (playerId === 2) GameState.player2.donasRecolectadas++;
     });
 
+        // =============================================================
+        // EVENTO: ATAQUE DEL JUGADOR
+        // =============================================================
+
+            events.on("player-attack", (data) => {
+          this.checkPlayerAttack(data);
+          });
+
+
     // =====================================================
     // HUD
     // =====================================================
@@ -403,6 +412,8 @@ addClimbLogic(player, playerKey) {
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1"))
       this.player1.collect();
 
+
+    //LLamada que activa el ataque solo en modo coop (no borrar)
     if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1"))
       this.player1.attack();
 
@@ -436,6 +447,20 @@ addClimbLogic(player, playerKey) {
 
     // UPDATE ENEMIGOS
     this.enemies.forEach(e => e.update?.());
+
+
+// ===========================================
+// ATAQUE DE JUGADORES A ENEMIGOS (SOLO COOP)
+// ===========================================
+if (GameState.mode === "coop") {
+  this.enemies.forEach(enemy => {
+    enemy.checkPlayerHit(this.player1);
+    enemy.checkPlayerHit(this.player2);
+  });
+}
+
+
+
 
     // CÁMARA DINÁMICA
     const cam = this.cameras.main;
@@ -545,4 +570,44 @@ addClimbLogic(player, playerKey) {
   st.lives = 0;
   this.handlePlayerDeath(player, id);
 }
+
+
+// =============================================================
+// ATAQUE DEL JUGADOR CONTRA ENEMIGOS
+// =============================================================
+checkPlayerAttack({ player, x, y, range, width, direction, id }) {
+
+  const attackX = x + direction * range; 
+  const attackY = y;
+
+  this.enemies.forEach(enemy => {
+    if (!enemy.active) return;
+
+    // Rectángulo de golpe del jugador
+    const hit = new Phaser.Geom.Rectangle(
+      attackX - width / 2,
+      attackY - enemy.height / 2,
+      width,
+      enemy.height
+    );
+
+    // Si el enemigo toca ese rectángulo → recibe daño
+    if (Phaser.Geom.Intersects.RectangleToRectangle(enemy.getBounds(), hit)) {
+
+      console.log(`🗡 Enemigo golpeado por Player ${id}`);
+
+      // Aplicar daño con tu sistema de daño
+      ServiceLocator.get("damage").applyDamageToEnemy(enemy, player);
+
+      // Efecto visual
+      enemy.setTint(0xffaaaa);
+      this.time.delayedCall(150, () => enemy.clearTint());
+    }
+  });
+}
+
+
+
+
+
 }

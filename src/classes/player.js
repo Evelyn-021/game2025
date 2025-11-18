@@ -20,38 +20,59 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.canMove = true;
     this.setCollideWorldBounds(true);
 
-    // === PROPIEDADES NUEVAS PARA MODO COOP ===
+    // === ATAQUE COOP ===
     this.isAttacking = false;
-    this.attackCooldown = 500; // ms entre ataques
+    this.attackCooldown = 500;
     this.lastAttackTime = 0;
-    this.currentAttackType = 'attack1'; // Alternar entre attack1 y attack2
+    this.currentAttackType = "attack1";
+
+    // === HITBOX DE ATAQUE ===
+    this.attackRange = 40;       // distancia para golpear
+    this.attackWidth = 60;       // ancho del golpe
+    this.facingRight = true;     // dirección actual
 
     // === ANIMACIONES ===
     this.createAnimations(scene);
     this.play(`${this.textureName}_idle`, true);
   }
 
-  // === MÉTODO NUEVO PARA ATAQUE EN MODO COOP ===
+
+  // =======================================================
+  // 🔥 ATAQUE COMPLETO: ANIMACIÓN + EVENTO + HITBOX
+  // =======================================================
   attack() {
     const now = this.scene.time.now;
-    
-    // Verificar cooldown y si puede atacar
-    if (this.isAttacking || now - this.lastAttackTime < this.attackCooldown) {
+
+    if (this.isAttacking || now - this.lastAttackTime < this.attackCooldown)
       return false;
-    }
 
     this.isAttacking = true;
     this.lastAttackTime = now;
 
-    // Alternar entre attack1 y attack2 para variedad
-    this.currentAttackType = this.currentAttackType === 'attack1' ? 'attack2' : 'attack1';
-    const attackAnim = `${this.textureName}_${this.currentAttackType}`;
+    // --- alternancia de ataques ---
+    this.currentAttackType =
+      this.currentAttackType === "attack1" ? "attack2" : "attack1";
 
-    // Verificar si existe la animación de ataque
-    if (this.scene.anims.exists(attackAnim)) {
-      this.play(attackAnim, true);
-      
-      // Restaurar animación al terminar
+    const anim = `${this.textureName}_${this.currentAttackType}`;
+
+    // 🔥 DIRECCIÓN DEL ATAQUE
+    this.facingRight = !this.flipX;
+
+    // 🔥 EMITIR ATAQUE HACIA ENEMIGOS
+    events.emit("player-attack", {
+      player: this,
+      x: this.x,
+      y: this.y,
+      range: this.attackRange,
+      width: this.attackWidth,
+      direction: this.facingRight ? 1 : -1,
+      id: this.id,
+    });
+
+    // --- reproducir animación ---
+    if (this.scene.anims.exists(anim)) {
+      this.play(anim, true);
+
       this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         this.isAttacking = false;
         if (this.body && this.body.onFloor()) {
@@ -59,15 +80,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         }
       });
     } else {
-      console.warn(`❌ Animación de ataque no encontrada: ${attackAnim}`);
-      // Si no hay animación de ataque, usar temporizador simple
-      this.scene.time.delayedCall(300, () => {
-        this.isAttacking = false;
-      });
+      console.warn(`❌ Animación de ataque no encontrada: ${anim}`);
+      this.scene.time.delayedCall(300, () => (this.isAttacking = false));
     }
 
     return true;
   }
+
 
   // === MÉTODO NUEVO PARA VERIFICAR SI PUEDE ATACAR ===
   canAttack() {
@@ -128,7 +147,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
-    // Tu lógica de update existente puede mantenerse
     if (!this.canMove) {
       this.stopMoving();
       return;
@@ -140,7 +158,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    // O eliminar esta parte si el movimiento se controla desde Game.js
+    //Movimiento
     const movingLeft = this.scene.inputSystem?.isPressed?.("left", this.playerKey);
     const movingRight = this.scene.inputSystem?.isPressed?.("right", this.playerKey);
 

@@ -1,6 +1,6 @@
 import Recolectables from "../classes/recolectables.js";
 import Enemy from "../classes/Enemy.js";
-
+import { GameState } from "../game/state/GameState.js";
 export default class Factory {
   /**
    * 🌍 Crea el tilemap y sus capas principales.
@@ -140,6 +140,7 @@ export default class Factory {
    * @param {AudioManager} audioManager - Manager de audio
    * @returns {Array} Array de enemigos
    */
+  //CREA ENEMIGOS
   static createEnemies(scene, enemyObjects, players = [], audioManager = null) {
     return enemyObjects.map((obj) => {
       const tipo = obj.properties?.find(p => p.name === "tipo")?.value || 
@@ -156,6 +157,11 @@ export default class Factory {
         players, 
         audioManager
       );
+      // ⭐⭐ ACTIVAR DAÑO SOLO EN MODO COOP ⭐⭐
+    if (scene.gameMode === "coop" || GameState.mode === "coop") {
+      enemy.isCoopEnemy = true;
+      enemy.setCoopProperties(3, 45); // vida y velocidad opcionales
+    }
 
       return enemy;
     });
