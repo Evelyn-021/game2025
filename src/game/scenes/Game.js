@@ -406,73 +406,102 @@ addClimbLogic(player, playerKey) {
   }
 
   // =============================================================
-  // LOOP DE UPDATE
-  // =============================================================
-  update() {
-    // MOVIMIENTO J1 - Solo horizontal si no está escalando
-    if (!this.player1.isClimbing) {
-      if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player1")) this.player1.moveLeft();
-      else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player1")) this.player1.moveRight();
-      else this.player1.stopMoving();
-    }
+// LOOP DE UPDATE
+// =============================================================
+update() {
+  // =========================================================
+  // MOVIMIENTO PLAYER 1
+  // =========================================================
+  if (!this.player1.isClimbing) {
+    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player1")) this.player1.moveLeft();
+    else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player1")) this.player1.moveRight();
+    else this.player1.stopMoving();
+  }
 
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1"))
-      this.player1.jump();
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1"))
+    this.player1.jump();
 
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1"))
-      this.player1.collect();
-
-
-    //LLamada que activa el ataque solo en modo coop (no borrar)
-    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1"))
-      this.player1.attack();
-
-    // MOVIMIENTO J2 - Solo horizontal si no está escalando
-    if (!this.player2.isClimbing) {
-      if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player2")) this.player2.moveLeft();
-      else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player2")) this.player2.moveRight();
-      else this.player2.stopMoving();
-    }
-
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2"))
-      this.player2.jump();
-
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2"))
-      this.player2.collect();
-
-    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player2"))
-      this.player2.attack();
-
-    // Asegurar que la gravedad se restablezca si no están escalando
-    if (!this.player1.isClimbing && !this.player1.body.allowGravity) {
-      this.player1.body.allowGravity = true;
-    }
-    if (!this.player2.isClimbing && !this.player2.body.allowGravity) {
-      this.player2.body.allowGravity = true;
-    }
-
-    // UPDATE DE PERSONAJES
-    this.player1.update();
-    this.player2.update();
-  
-    // UPDATE COMBOS
-    this.combo1.update();
-    this.combo2.update();
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1"))
+    this.player1.collect();
 
 
-        // UPDATE ENEMIGOS
-    this.enemies.forEach(e => e.update?.());
+  // =========================================================
+  // ATAQUE PLAYER 1
+  // =========================================================
+  // COOP → ataca enemigos
+  // VERSUS → ataca al otro jugador
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1")) {
+    if (GameState.mode === "coop") this.player1.attack();
+    if (GameState.mode === "versus") this.player1.attack();
+  }
 
 
-// ===========================================
-// ATAQUE DE JUGADORES A ENEMIGOS (SOLO COOP)
-// ===========================================
-if (GameState.mode === "coop") {
-  this.enemies.forEach(enemy => {
-    enemy.checkPlayerHit(this.player1);
-    enemy.checkPlayerHit(this.player2);
-  });
-}
+
+  // =========================================================
+  // MOVIMIENTO PLAYER 2
+  // =========================================================
+  if (!this.player2.isClimbing) {
+    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player2")) this.player2.moveLeft();
+    else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player2")) this.player2.moveRight();
+    else this.player2.stopMoving();
+  }
+
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2"))
+    this.player2.jump();
+
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2"))
+    this.player2.collect();
+
+
+
+  // =========================================================
+  // ATAQUE PLAYER 2
+  // =========================================================
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player2")) {
+    if (GameState.mode === "coop") this.player2.attack();
+    if (GameState.mode === "versus") this.player2.attack();
+  }
+
+
+
+  // =========================================================
+  // RESTAURAR GRAVEDAD CUANDO NO ESCALAN
+  // =========================================================
+  if (!this.player1.isClimbing && !this.player1.body.allowGravity) {
+    this.player1.body.allowGravity = true;
+  }
+  if (!this.player2.isClimbing && !this.player2.body.allowGravity) {
+    this.player2.body.allowGravity = true;
+  }
+
+
+
+  // =========================================================
+  // UPDATE DE PERSONAJES + COMBOS
+  // =========================================================
+  this.player1.update();
+  this.player2.update();
+  this.combo1.update();
+  this.combo2.update();
+
+
+
+  // =========================================================
+  // UPDATE ENEMIGOS
+  // =========================================================
+  this.enemies.forEach(e => e.update?.());
+
+
+
+  // =========================================================
+  // ATAQUE A ENEMIGOS SOLO EN COOP
+  // =========================================================
+  if (GameState.mode === "coop") {
+    this.enemies.forEach(enemy => {
+      enemy.checkPlayerHit(this.player1);
+      enemy.checkPlayerHit(this.player2);
+    });
+  }
 
 
 
@@ -614,10 +643,39 @@ checkPlayerAttack({ player, x, y, range, width, direction, id }) {
       this.time.delayedCall(150, () => enemy.clearTint());
     }
   });
+
+// =============================================================
+// ATAQUE ENTRE JUGADORES (VERSUS)
+// =============================================================
+if (GameState.mode === "versus") {
+
+  const attacker = player;
+  const target = (id === 1) ? this.player2 : this.player1;
+
+  // 🔒 Si el target está muerto o invulnerable, no se golpea
+  if (!target.active || target.invulnerable) return;
+
+  // 📦 Hitbox del ataque
+  const hitbox = new Phaser.Geom.Rectangle(
+    attackX - width / 2,
+    attackY - attacker.height / 2,
+    width,
+    attacker.height
+  );
+
+  // 🥊 Si el jugador enemigo está dentro del hitbox → daño
+  if (Phaser.Geom.Intersects.RectangleToRectangle(target.getBounds(), hitbox)) {
+    console.log(`🗡 Player ${id} golpeó a Player ${target.id}`);
+
+    // ⭐ Aplicar daño al jugador golpeado
+    ServiceLocator.get("damage").applyDamage(target, target.id);
+
+    // 💥 Efecto visual del golpe
+    target.setTint(0xffaaaa);
+    this.time.delayedCall(150, () => target.clearTint());
+  }
+
+
 }
 
-
-
-
-
-}
+}  }
