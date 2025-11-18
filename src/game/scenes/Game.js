@@ -85,8 +85,8 @@ export class Game extends Scene {
     this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
 
     // Configurar físicas de jugadores
-    this.player1.body.setGravityY(800);
-    this.player2.body.setGravityY(800);
+    this.player1.body.setGravityY(300);
+    this.player2.body.setGravityY(300);
     this.player1.body.setCollideWorldBounds(true);
     this.player2.body.setCollideWorldBounds(true);
 
@@ -207,7 +207,7 @@ export class Game extends Scene {
         }
       : {
           sueloKey: "suelo",
-          sueloImg: "tiles",
+          sueloImg: "wip4",
           escaleraKey: "escalera", 
           escaleraImg: "escalera"
         };
@@ -486,58 +486,63 @@ addClimbLogic(player, playerKey) {
   // MUERTE Y RESPAWN - CORREGIDO (problema de caída)
   // =============================================================
   playerDied(player, id) {
-    const key = id === 1 ? "player1" : "player2";
-    const st = GameState[key];
-    if (!player.active || player.invulnerable) return;
+  const key = id === 1 ? "player1" : "player2";
+  const st = GameState[key];
+  if (!player.active || player.invulnerable) return;
 
-    console.log(`💀 playerDied - Jugador ${id}:`);
+  console.log(`💀 playerDied - Jugador ${id}:`);
 
-    if (st.lives > 1) {
-      st.lives--;
-      events.emit("update-life", { playerID: id, vidas: st.lives });
+  // 🧡 TODAVÍA LE QUEDAN VIDAS
+  if (st.lives > 1) {
+    st.lives--;
+    events.emit("update-life", { playerID: id, vidas: st.lives });
 
-      player.invulnerable = true;
-      player.body.allowGravity = false;
-      player.body.setVelocity(0, 0);
-      player.body.checkCollision.none = true;
+    // --- Desactivar temporalmente ---
+    player.invulnerable = true;
+    player.body.checkCollision.none = true;
+    player.body.enable = false;
+    player.setVisible(false);
 
-      const spawn = id === 1 ? this.spawn1 : this.spawn2;
-      const safeY = Math.max(50, spawn.y - 20); // ✅ CORREGIDO: Posición segura
+    // --- Respawn inmediato ---
+    const spawn = id === 1 ? this.spawn1 : this.spawn2;
 
-      player.setPosition(spawn.x, safeY);
-      player.setActive(true).setVisible(true);
+    this.time.delayedCall(100, () => {
+      // Volvemos a activarlo
+      player.setVisible(true);
+      player.body.enable = true;
+      player.body.allowGravity = true;
+      player.body.checkCollision.none = false;
 
-      this.audioManager.play("respawn", { volume: 0.5, rate: 1.1 });
+      // Lo colocamos EXACTO en el spawn
+      player.setPosition(spawn.x, spawn.y);
 
+      // Lo frenamos completamente
+      player.setVelocity(0, 0);
+
+      // --- Lo bajamos 1 píxel para que toque plataforma ---
+      player.y += 1;
+
+      // --- Pequeño parpadeo de invulnerabilidad ---
       this.tweens.add({
         targets: player,
         alpha: 0.3,
-        scaleX: 1.1,
-        scaleY: 0.9,
-        duration: 150,
+        duration: 120,
+        repeat: 8,
         yoyo: true,
-        repeat: 4,
-        ease: "Sine.easeInOut",
-        onComplete: () => { 
-          player.alpha = 1; 
-          player.setScale(1);
-        },
+        onComplete: () => {
+          player.alpha = 1;
+          player.invulnerable = false;
+        }
       });
 
-      this.time.delayedCall(1000, () => {
-        // ✅ CORREGIDO: Restablecer física correctamente
-        player.body.allowGravity = true;
-        player.body.checkCollision.none = false;
-        player.invulnerable = false;
-        player.body.enable = true;
-        
-        // ✅ CORREGIDO: Asegurar que esté sobre plataforma
-        player.body.setVelocity(0, 0);
-      });
-      return;
-    }
+      this.audioManager.play("respawn");
+    });
 
-    st.lives = 0;
-    this.handlePlayerDeath(player, id);
+    return;
   }
+
+  // 🖤 Sin vidas → muerte
+  st.lives = 0;
+  this.handlePlayerDeath(player, id);
+}
 }

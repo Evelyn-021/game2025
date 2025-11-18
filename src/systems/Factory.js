@@ -10,32 +10,44 @@ export default class Factory {
    * @returns {Object} { map, plataformas, escaleras, fondo }
    */
   static createMap(scene, mapKey, tilesetConfig = {}) {
-    const map = scene.make.tilemap({ key: mapKey });
+  const map = scene.make.tilemap({ key: mapKey });
 
-    // Usar configuración proporcionada o valores por defecto
-    const sueloKey = tilesetConfig.sueloKey || "suelo";
-    const sueloImg = tilesetConfig.sueloImg || "tiles";
-    const escaleraKey = tilesetConfig.escaleraKey || "escalera";
-    const escaleraImg = tilesetConfig.escaleraImg || "escalera";
+  // Tilesets REALES según tus archivos
+  const sueloKey   = tilesetConfig.sueloKey   || "suelo";   // nombre en Tiled
+  const sueloImg   = tilesetConfig.sueloImg   || "wip4";    // key cargada en preload
 
-    const sueloSet = map.addTilesetImage(sueloKey, sueloImg);
-    const escaleraSet = map.addTilesetImage(escaleraKey, escaleraImg);
+  const suelo2Key  = tilesetConfig.suelo2Key  || "suelo2";  // nombre en Tiled
+  const suelo2Img  = tilesetConfig.suelo2Img  || "wip5";    // key cargada en preload
 
-    // Capa de fondo
-    const fondo = map.createLayer("Fondo", sueloSet, 0, 0);
-    if (fondo) fondo.setDepth(-1);
+  const escaleraKey = tilesetConfig.escaleraKey || "escalera";
+  const escaleraImg = tilesetConfig.escaleraImg || "escalera"; // si usás png propia cambiado esto
 
-    // Capa principal de plataformas
-    const plataformas = map.createLayer("plataformas", sueloSet, 0, 0);
-    if (plataformas) {
-      plataformas.setCollisionByProperty({ esColisionable: true });
-    }
+  // detectar cuál se usa según el mapa
+  const isMap2 = (mapKey === "map2");
 
-    // ✅ CORREGIDO: Mantener escaleras como TilemapLayer funcional
-    const escaleras = map.createLayer("usables", escaleraSet, 0, 0);
+  const sueloSet = map.addTilesetImage(
+    isMap2 ? suelo2Key : sueloKey,
+    isMap2 ? suelo2Img : sueloImg
+  );
 
-    return { map, plataformas, escaleras, fondo };
+  const escaleraSet = map.addTilesetImage(escaleraKey, escaleraImg);
+
+  // Fondo
+  const fondo = map.createLayer("Fondo", sueloSet, 0, 0);
+  if (fondo) fondo.setDepth(-1);
+
+  // PLATAFORMAS
+  const plataformas = map.createLayer("plataformas", sueloSet, 0, 0);
+  if (plataformas) {
+    plataformas.setCollisionByProperty({ esColisionable: true });
   }
+
+  // ESCALERAS
+  const escaleras = map.createLayer("usables", escaleraSet, 0, 0);
+
+  return { map, plataformas, escaleras, fondo };
+}
+
 
   /**
    * 🌌 Crea sistema de parallax para el fondo
