@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { events } from "../../classes/GameEvents.js";
+import { GameState } from "../state/GameState.js";
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -23,19 +24,23 @@ export class HUDScene extends Phaser.Scene {
       return;
     }
 
-    // === CONFIGURACIÓN GENERAL ===
+    // === CONFIG GENERAL ===
     this.cameras.main.setScroll(0, 0);
     this.cameras.main.setBackgroundColor("rgba(0,0,0,0)");
 
+    // ========================================
+    //          DONAS / MARCADORES
+    // ========================================
+
     this.playerDonas = {};
 
-    // === CONTENEDOR JUGADOR 1 ===
+    // === P1 ===
     this.add.rectangle(80, 40, 130, 50, 0x000000, 0.4)
       .setScrollFactor(0)
       .setOrigin(0.5);
 
     this.add.image(30, 40, "donas").setScrollFactor(0).setScale(0.9);
-    this.playerDonas.P1 = this.add.text(70, 28, "0", {
+    this.playerDonas.P1 = this.add.text(70, 28, GameState.player1.donasRecolectadas || "0", {
       fontFamily: "PixelFont",
       fontSize: 28,
       color: "#ff99cc",
@@ -43,16 +48,16 @@ export class HUDScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setScrollFactor(0);
 
-    // ❤️ VIDAS JUGADOR 1
-    this.heartsP1 = this.addHearts(30, 70);
+    // ❤️ VIDAS P1
+    this.heartsP1 = this.addHearts(30, 70, GameState.player1.lives);
 
-    // === CONTENEDOR JUGADOR 2 ===
+    // === P2 ===
     this.add.rectangle(940, 40, 130, 50, 0x000000, 0.4)
       .setScrollFactor(0)
       .setOrigin(0.5);
 
     this.add.image(960, 40, "donas").setScrollFactor(0).setScale(0.9);
-    this.playerDonas.P2 = this.add.text(900, 28, "0", {
+    this.playerDonas.P2 = this.add.text(900, 28, GameState.player2.donasRecolectadas || "0", {
       fontFamily: "PixelFont",
       fontSize: 28,
       color: "#99ccff",
@@ -60,39 +65,49 @@ export class HUDScene extends Phaser.Scene {
       strokeThickness: 4,
     }).setScrollFactor(0);
 
-    // ❤️ VIDAS JUGADOR 2
-    this.heartsP2 = this.addHearts(870, 70);
+    // ❤️ VIDAS P2
+    this.heartsP2 = this.addHearts(870, 70, GameState.player2.lives);
 
-    // === CRONÓMETRO CENTRAL ===
-    this.timeLeft = 120; // 2 minutos = 120 segundos
-    this.timerText = this.add.text(512, 40, "02:00", {
-      fontFamily: "PixelFont",
-      fontSize: 40,
-      color: "#ffffff",
-      stroke: "#000000",
-      strokeThickness: 6,
-    }).setOrigin(0.5).setScrollFactor(0);
+    // ========================================
+    //              CRONÓMETRO
+    // ========================================
 
-    this.timerEvent = this.time.addEvent({
-      delay: 1000,
-      callback: this.updateTimer,
-      callbackScope: this,
-      loop: true,
-    });
+    if (GameState.mode === "versus") {
+      this.timeLeft = 120;
+      this.timerText = this.add.text(512, 40, "02:00", {
+        fontFamily: "PixelFont",
+        fontSize: 40,
+        color: "#ffffff",
+        stroke: "#000000",
+        strokeThickness: 6,
+      }).setOrigin(0.5).setScrollFactor(0);
 
-    // === EVENTOS ===
+      this.timerEvent = this.time.addEvent({
+        delay: 1000,
+        callback: this.updateTimer,
+        callbackScope: this,
+        loop: true,
+      });
+    } else {
+      // === EN COOP NO HAY CRONÓMETRO ===
+      this.timeLeft = 0;
+    }
+
+    // ========================================
+    //          EVENTOS DE ACTUALIZACIÓN
+    // ========================================
+
     events.on("update-donas", ({ playerID, cantidad }) => {
       if (playerID === 1) this.playerDonas.P1.setText(cantidad);
       if (playerID === 2) this.playerDonas.P2.setText(cantidad);
     });
 
-    // Cuando un jugador pierde una vida
     events.on("update-life", ({ playerID, vidas }) => {
       if (playerID === 1) this.updateHearts(this.heartsP1, vidas);
       if (playerID === 2) this.updateHearts(this.heartsP2, vidas);
     });
 
-    // === LIMPIEZA ===
+    // LIMPIEZA
     this.scene.get("Game").events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scene.stop("HUDScene");
     });
@@ -103,12 +118,13 @@ export class HUDScene extends Phaser.Scene {
     });
   }
 
-  // ❤️ Dibuja tres corazones (por defecto llenos)
-  addHearts(x, y) {
+  // ❤️ Crear corazones iniciales
+  addHearts(x, y, vidas = 3) {
     const hearts = [];
     for (let i = 0; i < 3; i++) {
+      const frame = i < vidas ? 0 : 1;
       const heart = this.add
-        .sprite(x + i * 35, y, "health", 0) // frame 0 = lleno
+        .sprite(x + i * 35, y, "health", frame)
         .setScrollFactor(0)
         .setScale(1.2);
       hearts.push(heart);
@@ -116,43 +132,37 @@ export class HUDScene extends Phaser.Scene {
     return hearts;
   }
 
-  // 💔 Actualiza corazones según las vidas
+  // 💔 Actualizar corazones
   updateHearts(hearts, vidas) {
     hearts.forEach((heart, index) => {
-      heart.setFrame(index < vidas ? 0 : 1); // 0 = lleno, 1 = vacío
+      heart.setFrame(index < vidas ? 0 : 1);
     });
   }
 
-  // 🕒 Función del temporizador
+  // 🕒 Actualizar cronómetro
   updateTimer() {
     this.timeLeft--;
 
-    const minutes = Math.floor(this.timeLeft / 60);
-    const seconds = this.timeLeft % 60;
-    const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-    this.timerText.setText(formattedTime);
+    const m = Math.floor(this.timeLeft / 60);
+    const s = this.timeLeft % 60;
 
-    // Últimos 10 segundos → efecto visual
+    this.timerText.setText(`${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`);
+
     if (this.timeLeft <= 10) {
       this.timerText.setColor("#ff0000");
       this.timerText.setStroke("#ffffff", 6);
 
-      // Parpadeo
       this.tweens.add({
         targets: this.timerText,
         alpha: 0.3,
         duration: 300,
         yoyo: true,
-        repeat: 0,
       });
     }
 
-    // Se acabó el tiempo
     if (this.timeLeft <= 0) {
       this.timerEvent.remove(false);
-      events.emit("time-up"); // 🔔 Avisar al Game
+      events.emit("time-up");
     }
   }
 }

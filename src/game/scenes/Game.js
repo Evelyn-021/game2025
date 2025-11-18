@@ -1,11 +1,8 @@
 import { Scene } from "phaser";
 import Player from "../../classes/player.js";
-import Recolectables from "../../classes/recolectables.js";
 import { GameState } from "../state/GameState.js";
 import { events } from "../../classes/GameEvents.js";
 import AudioManager from "../../systems/AudioManager.js";
-import Combo from "../../classes/combo.js";
-import Enemy from "../../classes/Enemy.js";
 import DamageSystem from "../../systems/DamageSystem.js";
 import { ServiceLocator } from "../../systems/ServiceLocator.js";
 import Factory from "../../systems/Factory.js";
@@ -17,90 +14,68 @@ export class Game extends Scene {
   }
 
   create() {
-    // === SISTEMA DE ENTRADA GLOBAL ===
+    // =====================================================
+    // SISTEMA DE ENTRADA GLOBAL
+    // =====================================================
     this.inputSystem = new InputSystem(this.input);
 
-    // J1 - WASD + SPACE (salto) + E (acción/recolectar) + Q (ataque - para coop)
-    this.inputSystem.configureKeyboard({
-      [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.A],
-      [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.D],
-      [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.W],
-      [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.S],
-      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.SPACE], // SALTO
-      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.E],     // ACCIÓN/RECOLECTAR
-      [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.Q],     // ATAQUE (para coop)
-    }, "player1");
+    // --- Player 1 ---
+    this.inputSystem.configureKeyboard(
+      {
+        [INPUT_ACTIONS.LEFT]: [Phaser.Input.Keyboard.KeyCodes.A],
+        [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.D],
+        [INPUT_ACTIONS.UP]: [Phaser.Input.Keyboard.KeyCodes.W],
+        [INPUT_ACTIONS.DOWN]: [Phaser.Input.Keyboard.KeyCodes.S],
+        [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.SPACE],
+        [INPUT_ACTIONS.EAST]: [Phaser.Input.Keyboard.KeyCodes.E],
+        [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.Q],
+      },
+      "player1"
+    );
 
-    // J2 - Flechas + 0 del numpad (salto) + ENTER (acción/recolectar) + M (ataque - para coop)
-    this.inputSystem.configureKeyboard({
-      [INPUT_ACTIONS.LEFT]:  [Phaser.Input.Keyboard.KeyCodes.LEFT],
-      [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.RIGHT],
-      [INPUT_ACTIONS.UP]:    [Phaser.Input.Keyboard.KeyCodes.UP],
-      [INPUT_ACTIONS.DOWN]:  [Phaser.Input.Keyboard.KeyCodes.DOWN],
-      [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO], // SALTO
-      [INPUT_ACTIONS.EAST]:  [Phaser.Input.Keyboard.KeyCodes.ENTER],       // ACCIÓN/RECOLECTAR
-      [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.M],           // ATAQUE (para coop)
-    }, "player2");
+    // --- Player 2 ---
+    this.inputSystem.configureKeyboard(
+      {
+        [INPUT_ACTIONS.LEFT]: [Phaser.Input.Keyboard.KeyCodes.LEFT],
+        [INPUT_ACTIONS.RIGHT]: [Phaser.Input.Keyboard.KeyCodes.RIGHT],
+        [INPUT_ACTIONS.UP]: [Phaser.Input.Keyboard.KeyCodes.UP],
+        [INPUT_ACTIONS.DOWN]: [Phaser.Input.Keyboard.KeyCodes.DOWN],
+        [INPUT_ACTIONS.NORTH]: [Phaser.Input.Keyboard.KeyCodes.NUMPAD_ZERO],
+        [INPUT_ACTIONS.EAST]: [Phaser.Input.Keyboard.KeyCodes.ENTER],
+        [INPUT_ACTIONS.SOUTH]: [Phaser.Input.Keyboard.KeyCodes.M],
+      },
+      "player2"
+    );
 
-    // === SISTEMAS GLOBALES/ AUDIO MANAGER ===
+    // =====================================================
+    // SISTEMAS GLOBALES
+    // =====================================================
     this.audioManager = new AudioManager(this);
     this.audioManager.add("collect");
     this.audioManager.add("respawn");
     this.audioManager.add("salud");
-
-    this.damageSystem = new DamageSystem(this, this.audioManager);
-
-    // Registrar servicios globales 🧩
-    ServiceLocator.register("audio", this.audioManager);
-    ServiceLocator.register("damage", this.damageSystem);
-
-    // 🧟‍♂️ Sonidos de enemigos
     this.audioManager.add("bitemonster");
     this.audioManager.add("daño");
 
-    // === PARALLAX ANCLADO A CÁMARA ===
-    const cam = this.cameras.main;
-    const { width, height } = this.scale;
+    this.damageSystem = new DamageSystem(this, this.audioManager);
 
-    this.bgSky = this.add.image(0, 0, "background2").setOrigin(0.5).setScrollFactor(0).setDepth(-6);
-    this.bgCloudsFar = this.add.image(0, 0, "cake_valley_yellow-clouds").setOrigin(0.5).setScrollFactor(0).setDepth(-5);
-    this.bgCloudsMid = this.add.image(0, 0, "cake_valley_cotton-candy-middle").setOrigin(0.5).setScrollFactor(0).setDepth(-4);
-    this.bgCloudsFront = this.add.image(0, 0, "cake_valley_cotton-candy-front").setOrigin(0.5).setScrollFactor(0).setDepth(-3);
-    this.bgStars = this.add.tileSprite(0, 0, width, height, "cake_valley_sugar-stars").setOrigin(0.5).setScrollFactor(0).setDepth(-2);
+    ServiceLocator.register("audio", this.audioManager);
+    ServiceLocator.register("damage", this.damageSystem);
 
-    this.bgLayers = [this.bgSky, this.bgCloudsFar, this.bgCloudsMid, this.bgCloudsFront];
-    this.bgLayers.forEach(l => {
-      l.displayWidth = width * 1.3;
-      l.displayHeight = height * 1.3;
-    });
-    this.bgStars.displayWidth = width * 1.5;
-    this.bgStars.displayHeight = height * 1.5;
+    // =====================================================
+    // CREAR MUNDO: MAPA + PARALLAX + CAJAS
+    // =====================================================
+    this.setupWorld();
 
-    // === TILEMAP Y PLATAFORMAS ===
-    const { map, plataformas, escaleras } = Factory.createMap(this, "map");
-    this.map = map;
-    this.plataformas = plataformas;
-    this.escaleras = escaleras;
-
-    // === FÍSICAS ===
+    // =====================================================
+    // CONFIGURACIÓN DE FÍSICA
+    // =====================================================
     this.physics.world.gravity.y = 800;
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels, true, true, true, false);
+    this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels, true, true, true, false);
 
-    // === OBJETOS / SPAWNS ===
-    const objetos = map.getObjectLayer("objetos").objects;
-    this.spawn1 = objetos.find(o => o.name === "player");
-    this.spawn2 = objetos.find(o => o.name === "player2");
-
-    // === CÁMARA ===
-    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
-    // ⭐ DEADZONE REAL, LA BUENA ⭐
-    cam.setDeadzone(
-      this.scale.width * 0.45,
-      this.scale.height * 0.40
-    );
-
-    // === PERSONAJES ===
+    // =====================================================
+    // CREAR JUGADORES
+    // =====================================================
     const char1 = GameState.player1.character || "Pinky";
     const char2 = GameState.player2.character || "Lamb";
 
@@ -109,154 +84,176 @@ export class Game extends Scene {
     this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, 1);
     this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
 
+    // Configurar físicas de jugadores
+    this.player1.body.setGravityY(800);
+    this.player2.body.setGravityY(800);
+    this.player1.body.setCollideWorldBounds(true);
+    this.player2.body.setCollideWorldBounds(true);
+
+    // =====================================================
+    // COLISIONES
+    // =====================================================
     this.physics.add.collider(this.player1, this.plataformas);
     this.physics.add.collider(this.player2, this.plataformas);
 
-    // === CAJAS ===
-    [this.caja1, this.caja2] = Factory.createBoxes(this);
+    // =====================================================
+    // RECOLECTABLES
+    // =====================================================
+    const players = [this.player1, this.player2];
+    const boxes = GameState.mode === "versus" ? [this.caja1, this.caja2] : [this.cajaCoop];
 
-    // === DONAS ===
     this.recolectables = Factory.createRecolectables(
       this,
-      objetos,
-      [this.player1, this.player2],
-      [this.caja1, this.caja2]
+      this.objetosMapa,
+      players,
+      boxes
     );
 
-    // === ENEMIGOS ===
-    this.enemies = this.add.group();
-    const enemyObjects = map.getObjectLayer("enemigos")?.objects || [];
+    // =====================================================
+    // ENEMIGOS
+    // =====================================================
+    const enemyObjects = this.map.getObjectLayer("enemigos")?.objects || [];
+    this.enemies = Factory.createEnemies(this, enemyObjects, [this.player1, this.player2], this.audioManager);
 
-    enemyObjects.forEach((obj) => {
-      const tipo = obj.name;
-      const x = obj.x;
-      const y = obj.y;
-      const enemy = new Enemy(this, x, y, tipo, tipo, [this.player1, this.player2], this.audioManager);
-      this.enemies.add(enemy);
+    // Colisiones de enemigos con plataformas
+    this.enemies.forEach(e => {
+      this.physics.add.collider(e, this.plataformas);
     });
 
-    // === ACTUALIZACIÓN ===
-    this.enemies.children.iterate((enemy) => {
-      if (enemy) enemy.update();
+    // =====================================================
+    // SISTEMA DE DAÑO - ENEMIGOS A JUGADORES
+    // =====================================================
+    this.enemies.forEach(enemy => {
+      this.physics.add.overlap(this.player1, enemy, () => {
+        this.handleEnemyCollision(this.player1, enemy);
+      });
+      
+      this.physics.add.overlap(this.player2, enemy, () => {
+        this.handleEnemyCollision(this.player2, enemy);
+      });
     });
 
-    // === ESCUCHAR ATAQUES ENEMIGOS ===
-    this.events.on("enemy-attack", (player) => {
-      const damageSystem = ServiceLocator.get("damage");
-      damageSystem.applyDamage(player, player.id);
-    });
-
-    // === ESCUCHAR MUERTE DE JUGADORES ===
-    events.on("player-dead", (data) => {
-      const { player, playerID } = data;
+    // =====================================================
+    // ESCUCHAR EVENTOS
+    // =====================================================
+    events.on("player-dead", ({ player, playerID }) => {
       console.log(`📢 Evento player-dead recibido: Jugador ${playerID}`);
       this.handlePlayerDeath(player, playerID);
     });
 
-    // === LIMPIAR SERVICIOS AL SALIR ===
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      ServiceLocator.clear();
+    events.on("dona-recolectada", (playerId) => {
+      if (playerId === 1) GameState.player1.donasRecolectadas++;
+      if (playerId === 2) GameState.player2.donasRecolectadas++;
     });
 
-    // === HUD ===
+    // =====================================================
+    // HUD
+    // =====================================================
     this.scene.launch("HUDScene");
 
-    // === ESCALERAS ===
+    // =====================================================
+    // LÓGICA DE ESCALERAS - CORREGIDA
+    // =====================================================
     this.addClimbLogic(this.player1, "player1");
     this.addClimbLogic(this.player2, "player2");
 
-    // === COMBOS ===
-    this.combo1 = new Combo(this, this.player1);
-    this.combo2 = new Combo(this, this.player2);
+    // =====================================================
+    // MODO DE JUEGO
+    // =====================================================
+    if (GameState.mode === "versus") this.initVersus();
+    if (GameState.mode === "coop") this.initCoop();
 
-    events.on("heal-player", (playerId) => {
-      const playerState = playerId === 1 ? GameState.player1 : GameState.player2;
-      if (playerState.lives < 3) {
-        playerState.lives++;
-        events.emit("update-life", { playerID: playerId, vidas: playerState.lives });
-      }
-    });
-
-    // === MODOS ===
-    if (GameState.mode === "versus") this.initVersus(objetos);
-    if (GameState.mode === "coop") this.initCoop(objetos);
-
-    // === FIN DE TIEMPO ===
+    // =====================================================
+    // FIN DE TIEMPO
+    // =====================================================
     events.on("time-up", () => {
       const p1 = GameState.player1.donasRecolectadas || 0;
       const p2 = GameState.player2.donasRecolectadas || 0;
-      const tiempo = this.scene.get("HUDScene")?.tiempo ?? 0;
+      const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
       this.scene.stop("HUDScene");
-      if (p1 === p2) return this.scene.start("EmpateScene", { p1, p2, tiempo });
-      const winner = p1 > p2 ? "Jugador 1" : "Jugador 2";
-      this.scene.start("VictoryScene", { winner, p1, p2, tiempo });
+      
+      if (p1 === p2) {
+        this.scene.start("EmpateScene", { p1, p2, tiempo });
+      } else {
+        const winner = p1 > p2 ? "Jugador 1" : "Jugador 2";
+        this.scene.start("VictoryScene", { winner, p1, p2, tiempo });
+      }
     });
 
+    // =====================================================
+    // LIMPIEZA
+    // =====================================================
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      ServiceLocator.clear();
+      events.off("player-dead");
       events.off("time-up");
     });
   }
 
-  // === SISTEMA DE VERIFICACIÓN DE MUERTE ===
-  checkPlayerDeath(player, playerId) {
-    const playerState = playerId === 1 ? GameState.player1 : GameState.player2;
-    
-    if (playerState.lives <= 0 && player.active) {
-      console.log(`Jugador ${playerId} murió!`);
-      this.handlePlayerDeath(player, playerId);
+  // ============================================================
+  //  WORLD — MAPA + PARALLAX + CAJAS
+  // ============================================================
+  setupWorld() {
+    const mode = GameState.mode;
+    const { width, height } = this.scale;
+
+    // ===== MAPA =====
+    const mapConfig = mode === "coop" 
+      ? {
+          sueloKey: "suelo2",
+          sueloImg: "wip5", 
+          escaleraKey: "escalera2",
+          escaleraImg: "escalera"
+        }
+      : {
+          sueloKey: "suelo",
+          sueloImg: "tiles",
+          escaleraKey: "escalera", 
+          escaleraImg: "escalera"
+        };
+
+    const { map, plataformas, escaleras, fondo } = Factory.createMap(
+      this,
+      mode === "coop" ? "map2" : "map",
+      mapConfig
+    );
+
+    this.map = map;
+    this.plataformas = plataformas;
+    this.escaleras = escaleras;
+    this.fondoLayer = fondo;
+
+    // ===== OBJETOS =====
+    this.objetosMapa = map.getObjectLayer("objetos")?.objects || [];
+    this.spawn1 = this.objetosMapa.find((o) => o.name === "player") || { x: 200, y: 200 };
+    this.spawn2 = this.objetosMapa.find((o) => o.name === "player2") || { x: 500, y: 200 };
+
+    // ===== PARALLAX =====
+    const { layers, stars } = Factory.createParallax(this, mode, width, height);
+    this.bgLayers = layers;
+    this.bgStars = stars;
+
+    // ===== CAJAS =====
+    if (mode === "versus") {
+      [this.caja1, this.caja2] = Factory.createBoxes(this);
+    } else {
+      this.cajaCoop = Factory.createSharedBox(this, this.spawn1);
     }
-  }
 
-  // === MANEJADOR DE MUERTE ===
-  handlePlayerDeath(player, playerId) {
-    player.setActive(false).setVisible(false);
-    player.body.enable = false;
-
-    const p1 = GameState.player1.donasRecolectadas || 0;
-    const p2 = GameState.player2.donasRecolectadas || 0;
-    const tiempo = this.scene.get("HUDScene")?.tiempo ?? 0;
-    const winner = playerId === 1 ? "Jugador 2" : "Jugador 1";
+    // ===== CÁMARA =====
+    const cam = this.cameras.main;
+    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     
-    this.scene.stop("HUDScene");
-    
-    this.time.delayedCall(800, () => {
-      this.scene.start("GameOver", { 
-        winner, 
-        p1, 
-        p2, 
-        tiempo, 
-        motivo: "sin vidas" 
-      });
-    });
+    // Deadzone para mejor seguimiento
+    cam.setDeadzone(
+      this.scale.width * 0.45,
+      this.scale.height * 0.40
+    );
   }
 
-  // === LÓGICA DE ESCALERAS ===
-  addClimbLogic(player, playerKey) {
-    player.isClimbing = false;
-
-    this.events.on("update", () => {
-      if (!player || !player.body || !player.active) return;
-
-      const onLadder = this.escaleras.some(tile =>
-        Phaser.Geom.Intersects.RectangleToRectangle(player.getBounds(), tile.getBounds())
-      );
-
-      if (onLadder) {
-        player.isClimbing = true;
-        player.body.allowGravity = false;
-        player.setVelocityY(0);
-
-        const input = this.inputSystem;
-        if (input.isPressed(INPUT_ACTIONS.UP, playerKey))    player.y -= 3;
-        else if (input.isPressed(INPUT_ACTIONS.DOWN, playerKey)) player.y += 3;
-
-      } else if (player.isClimbing) {
-        player.isClimbing = false;
-        player.body.allowGravity = true;
-      }
-    });
-  }
-
+  // =============================================================
+  // MODO VERSUS
+  // =============================================================
   initVersus() {
     GameState.player1.donasRecolectadas = 0;
     GameState.player2.donasRecolectadas = 0;
@@ -269,25 +266,25 @@ export class Game extends Scene {
       strokeThickness: 6,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
 
-    events.on("dona-recolectada", (playerId) => {
-      if (playerId === 1) GameState.player1.donasRecolectadas++;
-      if (playerId === 2) GameState.player2.donasRecolectadas++;
-    });
-
     this.physics.add.collider(this.player1, this.player2, () => {
       const diff = this.player1.x - this.player2.x;
-      if (diff > 0) { this.player1.x += 5; this.player2.x -= 5; }
-      else          { this.player1.x -= 5; this.player2.x += 5; }
+      if (diff > 0) {
+        this.player1.x += 5;
+        this.player2.x -= 5;
+      } else {
+        this.player1.x -= 5;
+        this.player2.x += 5;
+      }
     });
 
     const hud = this.scene.get("HUDScene");
-    if (hud) {
-      hud.events.once("time-up", () => events.emit("time-up"));
-    }
+    if (hud) hud.events.once("time-up", () => events.emit("time-up"));
   }
 
+  // =============================================================
+  // MODO COOP
+  // =============================================================
   initCoop() {
-    // En modo coop, agregar lógica de ataque
     this.add.text(this.scale.width / 2, 40, "MODO COOPERATIVO", {
       fontFamily: "Arial Black",
       fontSize: 32,
@@ -297,143 +294,219 @@ export class Game extends Scene {
     }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
   }
 
-  // === UPDATE ===
+ // =============================================================
+// LÓGICA DE ESCALERAS - MÉTODO ORIGINAL FUNCIONANDO
+// =============================================================
+addClimbLogic(player, playerKey) {
+  player.isClimbing = false;
+
+  // ✅ CONVERTIR el TilemapLayer a array de tiles
+  let escalerasTiles = [];
+  this.escaleras.forEachTile(tile => {
+    if (tile && tile.index !== -1) {
+      escalerasTiles.push(tile);
+    }
+  });
+
+  this.events.on("update", () => {
+    if (!player || !player.body || !player.active) return;
+
+    // ✅ AHORA SÍ funciona porque escalerasTiles es un array
+    const onLadder = escalerasTiles.some(tile =>
+      Phaser.Geom.Intersects.RectangleToRectangle(player.getBounds(), tile.getBounds())
+    );
+
+    if (onLadder) {
+      player.isClimbing = true;
+      player.body.allowGravity = false;
+      player.setVelocityY(0);
+
+      const input = this.inputSystem;
+      if (input.isPressed(INPUT_ACTIONS.UP, playerKey)) {
+        player.y -= 4; // Un poco más rápido
+      } else if (input.isPressed(INPUT_ACTIONS.DOWN, playerKey)) {
+        player.y += 4;
+      }
+
+    } else if (player.isClimbing) {
+      player.isClimbing = false;
+      player.body.allowGravity = true;
+    }
+  });
+}
+  // =============================================================
+  // COLISIÓN CON ENEMIGOS - SISTEMA DE DAÑO
+  // =============================================================
+  handleEnemyCollision(player, enemy) {
+    if (player.invulnerable || !player.active) return;
+
+    // Aplicar daño al jugador
+    ServiceLocator.get("damage").applyDamage(player, player.id);
+    
+    // Efecto de knockback
+    const knockbackDirection = player.x < enemy.x ? -1 : 1;
+    player.setVelocityX(200 * knockbackDirection);
+    player.setVelocityY(-200);
+
+    // Efecto visual de daño
+    player.setTint(0xff0000);
+    this.time.delayedCall(200, () => {
+      player.clearTint();
+    });
+
+    // Hacer al jugador invulnerable temporalmente
+    player.invulnerable = true;
+    this.time.delayedCall(1000, () => {
+      player.invulnerable = false;
+    });
+  }
+
+  // =============================================================
+  // HANDLER DE MUERTE
+  // =============================================================
+  handlePlayerDeath(player, id) {
+    player.setActive(false).setVisible(false);
+    player.body.enable = false;
+
+    const p1 = GameState.player1.donasRecolectadas || 0;
+    const p2 = GameState.player2.donasRecolectadas || 0;
+    const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
+    const winner = id === 1 ? "Jugador 2" : "Jugador 1";
+
+    this.scene.stop("HUDScene");
+
+    this.time.delayedCall(800, () => {
+      this.scene.start("GameOver", {
+        winner,
+        p1,
+        p2,
+        tiempo,
+        motivo: "sin vidas",
+      });
+    });
+  }
+
+  // =============================================================
+  // LOOP DE UPDATE
+  // =============================================================
   update() {
-    // === MOVIMIENTO DE JUGADORES USANDO INPUTSYSTEM ===
-    // Jugador 1 - Movimiento horizontal
-    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player1")) {
-      this.player1.moveLeft();
-    } else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player1")) {
-      this.player1.moveRight();
-    } else {
-      this.player1.stopMoving();
+    // MOVIMIENTO J1 - Solo horizontal si no está escalando
+    if (!this.player1.isClimbing) {
+      if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player1")) this.player1.moveLeft();
+      else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player1")) this.player1.moveRight();
+      else this.player1.stopMoving();
     }
 
-    // Jugador 1 - Salto (usando NORTH que es SPACE)
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1")) {
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1"))
       this.player1.jump();
-    }
 
-    // Jugador 1 - Acción/Recolectar (usando EAST que es E)
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1")) {
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1"))
       this.player1.collect();
+
+    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1"))
+      this.player1.attack();
+
+    // MOVIMIENTO J2 - Solo horizontal si no está escalando
+    if (!this.player2.isClimbing) {
+      if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player2")) this.player2.moveLeft();
+      else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player2")) this.player2.moveRight();
+      else this.player2.stopMoving();
     }
 
-    // Jugador 1 - Ataque (solo en modo coop, usando SOUTH que es Q)
-    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player1")) {
-      this.player1.attack(); // Necesitarás implementar este método
-    }
-
-    // Jugador 2 - Movimiento horizontal
-    if (this.inputSystem.isPressed(INPUT_ACTIONS.LEFT, "player2")) {
-      this.player2.moveLeft();
-    } else if (this.inputSystem.isPressed(INPUT_ACTIONS.RIGHT, "player2")) {
-      this.player2.moveRight();
-    } else {
-      this.player2.stopMoving();
-    }
-
-    // Jugador 2 - Salto (usando NORTH que es NUMPAD_ZERO)
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2")) {
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2"))
       this.player2.jump();
-    }
 
-    // Jugador 2 - Acción/Recolectar (usando EAST que es ENTER)
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2")) {
+    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2"))
       this.player2.collect();
+
+    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player2"))
+      this.player2.attack();
+
+    // Asegurar que la gravedad se restablezca si no están escalando
+    if (!this.player1.isClimbing && !this.player1.body.allowGravity) {
+      this.player1.body.allowGravity = true;
+    }
+    if (!this.player2.isClimbing && !this.player2.body.allowGravity) {
+      this.player2.body.allowGravity = true;
     }
 
-    // Jugador 2 - Ataque (solo en modo coop, usando SOUTH que es M)
-    if (GameState.mode === "coop" && this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH, "player2")) {
-      this.player2.attack(); // Necesitarás implementar este método
-    }
-
+    // UPDATE DE PERSONAJES
     this.player1.update();
     this.player2.update();
 
-    // === ACTUALIZAR ENEMIGOS ===
-    this.enemies.children.iterate((enemy) => {
-      if (enemy) enemy.update();
-    });
+    // UPDATE ENEMIGOS
+    this.enemies.forEach(e => e.update?.());
 
-    // === MOVIMIENTO DE CÁMARA DINÁMICO ===
+    // CÁMARA DINÁMICA
     const cam = this.cameras.main;
-    const centerX = (this.player1.x + this.player2.x) / 2;
-    const centerY = (this.player1.y + this.player2.y) / 2;
+    const cx = (this.player1.x + this.player2.x) / 2;
+    const cy = (this.player1.y + this.player2.y) / 2;
     const lerp = 0.08;
-    cam.scrollX += (centerX - cam.midPoint.x) * lerp;
-    cam.scrollY += (centerY - cam.midPoint.y) * lerp;
 
-    const distanceX = Math.abs(this.player1.x - this.player2.x);
-    const distanceY = Math.abs(this.player1.y - this.player2.y);
-    const distance = Math.max(distanceX, distanceY);
-    const targetZoom = Phaser.Math.Clamp(1.2 - distance / 1200, 0.85, 1.2);
+    cam.scrollX += (cx - cam.midPoint.x) * lerp;
+    cam.scrollY += (cy - cam.midPoint.y) * lerp;
+
+    // ZOOM DINÁMICO
+    const distX = Math.abs(this.player1.x - this.player2.x);
+    const distY = Math.abs(this.player1.y - this.player2.y);
+    const dist = Math.max(distX, distY);
+
+    const targetZoom = Phaser.Math.Clamp(1.2 - dist / 1200, 0.85, 1.2);
     cam.zoom = Phaser.Math.Linear(cam.zoom, targetZoom, 0.05);
 
-    // === AJUSTE AUTOMÁTICO DE FONDOS ===
-    const viewW = this.scale.width / cam.zoom;
-    const viewH = this.scale.height / cam.zoom;
-    const offsetX = cam.midPoint.x;
-    const offsetY = cam.midPoint.y;
+    // PARALLAX
+    const vw = this.scale.width / cam.zoom;
+    const vh = this.scale.height / cam.zoom;
+
+    const ox = cam.midPoint.x;
+    const oy = cam.midPoint.y;
+
     this.bgLayers.forEach(layer => {
-      layer.x = offsetX;
-      layer.y = offsetY;
-      layer.displayWidth = viewW * 1.4;
-      layer.displayHeight = viewH * 1.4;
+      layer.x = ox;
+      layer.y = oy;
+      layer.displayWidth = vw * 1.4;
+      layer.displayHeight = vh * 1.4;
     });
-    this.bgStars.x = offsetX;
-    this.bgStars.y = offsetY;
-    this.bgStars.displayWidth = viewW * 1.6;
-    this.bgStars.displayHeight = viewH * 1.6;
+
+    this.bgStars.x = ox;
+    this.bgStars.y = oy;
+    this.bgStars.displayWidth = vw * 1.6;
+    this.bgStars.displayHeight = vh * 1.6;
     this.bgStars.tilePositionX += 0.4;
-    this.bgStars.tilePositionY = Math.sin(this.time.now * 0.001) * 4;
-    const zoomElastic = (1 - cam.zoom) * 200;
-    this.bgCloudsFar.y = offsetY + zoomElastic * 0.2;
-    this.bgCloudsMid.y = offsetY + zoomElastic * 0.4;
-    this.bgCloudsFront.y = offsetY + zoomElastic * 0.6;
 
-    // === COMBOS DE SALUD ===
-    if (!this.combo1.isActive && GameState.player1.lives < 3 && Phaser.Math.Between(0, 1000) < 2) {
-      this.combo1.start();
-    }
-    if (!this.combo2.isActive && GameState.player2.lives < 3 && Phaser.Math.Between(0, 1000) < 2) {
-      this.combo2.start();
-    }
-
-    // === VERIFICAR CAÍDAS ===
-    const worldHeight = this.physics.world.bounds.height;
-    if (!this.player1.invulnerable && this.player1.y > worldHeight + 100) this.playerDied(this.player1, 1);
-    if (!this.player2.invulnerable && this.player2.y > worldHeight + 100) this.playerDied(this.player2, 2);
+    // CAÍDA DEL MUNDO
+    const worldH = this.physics.world.bounds.height;
+    if (!this.player1.invulnerable && this.player1.y > worldH + 100)
+      this.playerDied(this.player1, 1);
+    if (!this.player2.invulnerable && this.player2.y > worldH + 100)
+      this.playerDied(this.player2, 2);
   }
 
-  // === MUERTE / RESPAWN ===
+  // =============================================================
+  // MUERTE Y RESPAWN - CORREGIDO (problema de caída)
+  // =============================================================
   playerDied(player, id) {
     const key = id === 1 ? "player1" : "player2";
     const st = GameState[key];
     if (!player.active || player.invulnerable) return;
 
     console.log(`💀 playerDied - Jugador ${id}:`);
-    console.log('  - Texture actual:', player.texture?.key);
-    console.log('  - Texture esperada:', GameState[key].character);
-    console.log('  - GameState character:', GameState[key].character);
 
     if (st.lives > 1) {
       st.lives--;
       events.emit("update-life", { playerID: id, vidas: st.lives });
+
       player.invulnerable = true;
       player.body.allowGravity = false;
       player.body.setVelocity(0, 0);
-      player.body.setAcceleration(0, 0);
       player.body.checkCollision.none = true;
 
       const spawn = id === 1 ? this.spawn1 : this.spawn2;
-      const safeY = Math.max(0, spawn.y - 12);
+      const safeY = Math.max(50, spawn.y - 20); // ✅ CORREGIDO: Posición segura
+
       player.setPosition(spawn.x, safeY);
       player.setActive(true).setVisible(true);
-      
-      console.log(`🔄 RESPAN - Jugador ${id}:`);
-      console.log('  - Texture después de respawn:', player.texture?.key);
-      
+
       this.audioManager.play("respawn", { volume: 0.5, rate: 1.1 });
 
       this.tweens.add({
@@ -448,16 +521,18 @@ export class Game extends Scene {
         onComplete: () => { 
           player.alpha = 1; 
           player.setScale(1);
-          console.log(`🎭 ANIMACIÓN COMPLETA - Jugador ${id} texture:`, player.texture?.key);
         },
       });
 
       this.time.delayedCall(1000, () => {
+        // ✅ CORREGIDO: Restablecer física correctamente
         player.body.allowGravity = true;
         player.body.checkCollision.none = false;
         player.invulnerable = false;
-        player.body.setVelocityY(-120);
-        console.log(`🛡️ INVULNERABILIDAD REMOVIDA - Jugador ${id} texture:`, player.texture?.key);
+        player.body.enable = true;
+        
+        // ✅ CORREGIDO: Asegurar que esté sobre plataforma
+        player.body.setVelocity(0, 0);
       });
       return;
     }

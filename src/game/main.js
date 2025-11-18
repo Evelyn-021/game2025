@@ -1,12 +1,10 @@
 import Phaser, { AUTO } from 'phaser';
 
 // Escenas base
-import { Boot } from './scenes/Boot.js';
 import { Preloader } from './scenes/Preloader.js';
 import { MainMenu } from './scenes/MainMenu.js';
-import { ModeSelect } from './scenes/ModeSelect.js';
 import { CharacterSelect } from './scenes/CharacterSelect.js';
-import { VersusScene } from "./scenes/VersusScene.js";
+import { ModeSelect } from './scenes/ModeSelect.js';
 import { Game } from './scenes/Game.js';
 import { HUDScene } from './scenes/HUDScene.js';
 import { GameOver } from './scenes/GameOver.js';
@@ -29,12 +27,10 @@ const config = {
   },
 
   scene: [
-    Boot,
     Preloader,
     MainMenu,
     ModeSelect,
     CharacterSelect,
-    VersusScene,
     Game,
     HUDScene,
     GameOver,

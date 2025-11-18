@@ -1,15 +1,16 @@
 /**
  * Sistema de entrada unificado - Configuración para 1 o 2 joysticks
+ * CORREGIDO: Cada botón tiene una función única
  */
 export const INPUT_ACTIONS = {
   UP: "up",
   DOWN: "down", 
   LEFT: "left",
   RIGHT: "right",
-  NORTH: "north",
-  EAST: "east", 
-  SOUTH: "south",
-  WEST: "west",
+  NORTH: "north",  // A button - SALTO
+  EAST: "east",    // X button - ACCIÓN/RECOLECTAR
+  SOUTH: "south",  // B button - ATAQUE
+  WEST: "west",    // Y button - FUNCIÓN EXTRA (opcional)
 };
 
 export default class InputSystem {
@@ -21,13 +22,18 @@ export default class InputSystem {
     this.gamepad1 = null;
     this.gamepad2 = null;
 
-    // ✅ AGREGAR: Estados previos para detección de "just pressed"
+    // Estados previos para detección de "just pressed"
     this.previousButtonStates = {
       player1: {},
       player2: {}
     };
 
-    // Mapeo completo por jugador
+    this.previousAxisStates = {
+      player1: {},
+      player2: {},
+    };
+
+    // ✅ MAPEO CORREGIDO - CADA BOTÓN TIENE UNA FUNCIÓN ÚNICA
     this.mapping = {
       player1: {
         [INPUT_ACTIONS.UP]: {
@@ -61,26 +67,25 @@ export default class InputSystem {
         [INPUT_ACTIONS.NORTH]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 0 },  // A button (salto)
-            { type: "button", index: 3 }   // Y button
+            { type: "button", index: 0 },  // A button - SOLO SALTO
           ],
         },
         [INPUT_ACTIONS.EAST]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 2 },  // X button (acción/recolectar)
+            { type: "button", index: 2 },  // X button - SOLO ACCIÓN/RECOLECTAR
           ],
         },
         [INPUT_ACTIONS.SOUTH]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 1 },  // B button
+            { type: "button", index: 1 },  // B button - SOLO ATAQUE
           ],
         },
         [INPUT_ACTIONS.WEST]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 9 },  // Back/Select
+            { type: "button", index: 3 },  // Y button - FUNCIÓN EXTRA (opcional)
           ],
         },
       },
@@ -88,62 +93,56 @@ export default class InputSystem {
         [INPUT_ACTIONS.UP]: {
           keyboard: [],
           gamepad: [
-            { type: "axis", index: 1, dir: -1 },
-            { type: "button", index: 12 }
+            { type: "axis", index: 1, dir: -1 }, // LY negativo
+            { type: "button", index: 12 }        // D-PAD UP
           ],
         },
         [INPUT_ACTIONS.DOWN]: {
           keyboard: [],
           gamepad: [
-            { type: "axis", index: 1, dir: 1 },
-            { type: "button", index: 13 }
+            { type: "axis", index: 1, dir: 1 },  // LY positivo
+            { type: "button", index: 13 }        // D-PAD DOWN
           ],
         },
         [INPUT_ACTIONS.LEFT]: {
           keyboard: [],
           gamepad: [
-            { type: "axis", index: 0, dir: -1 },
-            { type: "button", index: 14 }
+            { type: "axis", index: 0, dir: -1 }, // LX negativo
+            { type: "button", index: 14 }        // D-PAD LEFT
           ],
         },
         [INPUT_ACTIONS.RIGHT]: {
           keyboard: [],
           gamepad: [
-            { type: "axis", index: 0, dir: 1 },
-            { type: "button", index: 15 }
+            { type: "axis", index: 0, dir: 1 },  // LX positivo
+            { type: "button", index: 15 }        // D-PAD RIGHT
           ],
         },
         [INPUT_ACTIONS.NORTH]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 0 },
-            { type: "button", index: 3 }
+            { type: "button", index: 0 },  // A button - SOLO SALTO
           ],
         },
         [INPUT_ACTIONS.EAST]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 2 },
+            { type: "button", index: 2 },  // X button - SOLO ACCIÓN/RECOLECTAR
           ],
         },
         [INPUT_ACTIONS.SOUTH]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 1 },
+            { type: "button", index: 1 },  // B button - SOLO ATAQUE
           ],
         },
         [INPUT_ACTIONS.WEST]: {
           keyboard: [],
           gamepad: [
-            { type: "button", index: 9 },
+            { type: "button", index: 3 },  // Y button - FUNCIÓN EXTRA (opcional)
           ],
         },
       }
-    };
-
-    this.previousAxisStates = {
-      player1: {},
-      player2: {},
     };
 
     this.initializeGamepad();
@@ -279,12 +278,10 @@ export default class InputSystem {
         const button = gamepad.buttons[input.index];
         if (!button) return false;
         
-        // ✅ CORRECCIÓN: Usar estado anterior para "just pressed"
         const buttonKey = `button_${input.index}`;
         const wasPressed = this.previousButtonStates[player][buttonKey] || false;
         const isPressed = button.pressed;
         
-        // Actualizar estado anterior
         this.previousButtonStates[player][buttonKey] = isPressed;
         
         return isPressed && !wasPressed;
@@ -303,10 +300,23 @@ export default class InputSystem {
     });
   }
 
-  // ✅ NUEVO MÉTODO: Actualizar estados anteriores (llamar en cada frame)
+  // ✅ NUEVO: Método para actualizar estados (llamar en cada frame del juego)
   update() {
-    // Esto asegura que los estados se mantengan actualizados
+    // Este método asegura que los estados se mantengan actualizados
     // Se puede llamar desde el juego principal en cada frame
+  }
+
+  // ✅ NUEVO: Método para obtener el layout actual (útil para debug)
+  getCurrentLayout(player = "player1") {
+    return {
+      "🎮 LAYOUT CORRECTO": "Cada botón tiene una función única",
+      "A (0)": "NORTH - Salto",
+      "B (1)": "SOUTH - Ataque", 
+      "X (2)": "EAST - Acción/Recolectar",
+      "Y (3)": "WEST - Función extra (opcional)",
+      "D-PAD": "Movimiento direccional",
+      "Sticks": "Movimiento analógico"
+    };
   }
 
   // Método de debug mejorado para gamepads
@@ -320,8 +330,14 @@ export default class InputSystem {
     const pressedButtons = [];
     gamepad.buttons.forEach((button, index) => {
       if (button && button.pressed) {
+        const buttonNames = {
+          0: "A", 1: "B", 2: "X", 3: "Y",
+          12: "DPAD_UP", 13: "DPAD_DOWN", 14: "DPAD_LEFT", 15: "DPAD_RIGHT"
+        };
+        
         pressedButtons.push({ 
           index, 
+          name: buttonNames[index] || `BTN_${index}`,
           value: button.value,
           pressed: button.pressed 
         });
@@ -333,7 +349,11 @@ export default class InputSystem {
       if (axis) {
         const value = axis.getValue();
         if (Math.abs(value) > 0.1) {
-          activeAxes.push({ index, value });
+          activeAxes.push({ 
+            index, 
+            axis: index === 0 ? "LX" : index === 1 ? "LY" : `AXIS_${index}`,
+            value: value.toFixed(2) 
+          });
         }
       }
     });
@@ -347,5 +367,45 @@ export default class InputSystem {
     });
 
     return { pressedButtons, activeAxes };
+  }
+
+  // ✅ NUEVO: Método para verificar conflictos de mapeo
+  checkMappingConflicts() {
+    const conflicts = [];
+    
+    Object.keys(this.mapping).forEach(player => {
+      const buttonUsage = {};
+      
+      Object.keys(this.mapping[player]).forEach(action => {
+        this.mapping[player][action].gamepad.forEach(input => {
+          if (input.type === "button") {
+            const buttonKey = `button_${input.index}`;
+            if (!buttonUsage[buttonKey]) {
+              buttonUsage[buttonKey] = [];
+            }
+            buttonUsage[buttonKey].push(action);
+          }
+        });
+      });
+      
+      // Verificar botones con múltiples asignaciones
+      Object.keys(buttonUsage).forEach(buttonKey => {
+        if (buttonUsage[buttonKey].length > 1) {
+          conflicts.push({
+            player,
+            button: buttonKey,
+            actions: buttonUsage[buttonKey]
+          });
+        }
+      });
+    });
+    
+    if (conflicts.length > 0) {
+      console.warn("⚠️ CONFLICTOS DE MAPEO DETECTADOS:", conflicts);
+    } else {
+      console.log("✅ No hay conflictos de mapeo - Cada botón tiene una función única");
+    }
+    
+    return conflicts;
   }
 }

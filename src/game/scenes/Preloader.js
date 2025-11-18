@@ -27,9 +27,11 @@ export class Preloader extends Scene {
     this.load.image('background', 'assets/image/menu/background.png');
 
     // === TILEMAP ===
-    this.load.image('tiles', 'assets/tilemap/wip4.png');          // Tileset del suelo
+    this.load.image('tiles', 'assets/tilemap/wip4.png');          // Tileset llamado suelo
+    this.load.image("wip5", "assets/tilemap/wip5.png");
     this.load.image('escalera', 'assets/tilemap/escalera.png');   // Tileset de escaleras
     this.load.tilemapTiledJSON('map', 'assets/tilemap/map.json'); // Mapa con ambas capas
+    this.load.tilemapTiledJSON("map2", "assets/tilemap/map2.json");
 
     // === PARALLAX ===
    this.load.image("background2", "assets/image/escenario/background2.png");
@@ -37,7 +39,11 @@ export class Preloader extends Scene {
     this.load.image("cake_valley_cotton-candy-middle", "assets/image/escenario/cake_valley_cotton-candy-middle.png");
     this.load.image("cake_valley_cotton-candy-front", "assets/image/escenario/cake_valley_cotton-candy-front.png");
     this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
-    
+    this.load.image("background3", "assets/image/escenario/background3.png");
+    this.load.image("nubelila1", "assets/image/escenario/nubelila1.png");
+    this.load.image("nubelila2", "assets/image/escenario/nubelila2.png");
+    this.load.image("nubes3", "assets/image/escenario/nubes3.png");
+    this.load.image("nubeparallax", "assets/image/escenario/nubeparallax.png");
     //PERSONAJES
     this.load.atlas('Pinky', 'assets/image/personajes/Pinky.png', 'assets/image/personajes/Pinky.json');
     this.load.atlas('Lamb', 'assets/image/personajes/Lamb.png', 'assets/image/personajes/Lamb.json');

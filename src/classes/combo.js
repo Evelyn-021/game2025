@@ -17,11 +17,10 @@ export default class Combo {
     this.timer = null;
     this.comboLength = 4;
     
-    // Para detectar input del joystick
+    // Para detectar input del D-Pad
     this.inputHandler = null;
     this.currentArrow = null;
-    this.joystickCooldown = false;
-    this.lastStickState = { x: 0, y: 0 };
+    this.dpadCooldown = false;
   }
 
   start() {
@@ -60,10 +59,9 @@ export default class Combo {
     });
 
     this.expected = dir;
-    this.joystickCooldown = false;
-    this.lastStickState = { x: 0, y: 0 };
+    this.dpadCooldown = false;
 
-    // ✅ DETECCIÓN MIXTA: Teclado + Joystick
+    // ✅ DETECCIÓN MIXTA: Teclado + D-Pad
     this.setupInputDetection(arrow);
     
     // Timeout por si no presiona nada
@@ -81,46 +79,75 @@ export default class Combo {
       this.handleKeyboardInput(e, arrow);
     });
 
-    // Handler para joystick se maneja en update
+    // Handler para D-Pad se maneja en update
   }
 
   handleKeyboardInput(event, arrow) {
     const pressed = this.mapKey(event.code);
-    if (pressed && !this.joystickCooldown) {
+    if (pressed && !this.dpadCooldown) {
       this.processInput(pressed, arrow);
     }
   }
 
   update() {
-    if (!this.active || !this.expected || !this.currentArrow || this.joystickCooldown) return;
+    if (!this.active || !this.expected || !this.currentArrow || this.dpadCooldown) return;
 
-    // ✅ VERIFICAR JOYSTICK - USANDO LOS MÉTODOS EXISTENTES DEL INPUT SYSTEM
+    // ✅ DETECCIÓN SOLO D-PAD (botones 12-15)
     const inputSystem = this.scene.inputSystem;
     if (!inputSystem) return;
 
     const playerKey = this.player.playerKey; // "player1" o "player2"
-    let joystickInput = null;
+    
+    let detectedInput = null;
 
-    // Usar los métodos existentes del InputSystem para detección "just pressed"
+    // ✅ VERIFICAR D-PAD USANDO EL SISTEMA UNIFICADO
     if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey)) {
-      joystickInput = "left";
+      detectedInput = "left";
     } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) {
-      joystickInput = "right";
+      detectedInput = "right";
     } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey)) {
-      joystickInput = "up";
+      detectedInput = "up";
     } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey)) {
-      joystickInput = "down";
+      detectedInput = "down";
     }
 
-    // Procesar input del joystick
-    if (joystickInput && joystickInput === this.expected) {
-      this.joystickCooldown = true;
-      this.processInput(joystickInput, this.currentArrow);
+    // Procesar input detectado
+    if (detectedInput && detectedInput === this.expected) {
+      this.dpadCooldown = true;
+      this.processInput(detectedInput, this.currentArrow);
       
-      // Cooldown para evitar múltiples detecciones
-      this.scene.time.delayedCall(300, () => {
-        this.joystickCooldown = false;
+      // Cooldown corto para evitar múltiples detecciones
+      this.scene.time.delayedCall(200, () => {
+        this.dpadCooldown = false;
       });
+    }
+
+    // ✅ DEBUG: Mostrar estado del D-Pad (opcional)
+    this.debugDpadState(playerKey);
+  }
+
+  // ✅ NUEVO MÉTODO: Debug del estado del D-Pad
+  debugDpadState(playerKey) {
+    // Solo activar debug si es necesario
+    if (!this.scene.config || !this.scene.config.debugCombo) return;
+
+    const inputSystem = this.scene.inputSystem;
+    const gamepad = playerKey === "player1" ? inputSystem.gamepad1 : inputSystem.gamepad2;
+    
+    if (!gamepad) return;
+
+    // Verificar estado de los botones del D-Pad (12-15)
+    const dpadStates = {
+      "DPAD_UP (12)": gamepad.buttons[12]?.pressed || false,
+      "DPAD_DOWN (13)": gamepad.buttons[13]?.pressed || false,
+      "DPAD_LEFT (14)": gamepad.buttons[14]?.pressed || false,
+      "DPAD_RIGHT (15)": gamepad.buttons[15]?.pressed || false,
+    };
+
+    // Solo mostrar si algún botón está presionado
+    const pressedButtons = Object.keys(dpadStates).filter(key => dpadStates[key]);
+    if (pressedButtons.length > 0) {
+      console.log(`🎮 D-Pad ${playerKey} presionado:`, pressedButtons, "Expected:", this.expected);
     }
   }
 
@@ -141,6 +168,9 @@ export default class Combo {
       this.currentIndex++;
       this.delay = Math.max(this.delay - this.speedBoost, this.minDelay);
       
+      // Feedback de acierto
+      this.showHitFeedback("¡BIEN!");
+      
       // Limpiar input handlers antes del próximo
       this.cleanupInputHandlers();
       
@@ -150,16 +180,43 @@ export default class Combo {
     }
   }
 
+  // ✅ MÉTODO: Feedback visual mejorado
+  showHitFeedback(text) {
+    const feedback = this.scene.add.text(this.player.x, this.player.y - 80, text, {
+      fontFamily: "PixelFont",
+      fontSize: 20,
+      color: "#00ff00",
+      stroke: "#000000",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(120);
+
+    this.scene.tweens.add({
+      targets: feedback,
+      y: feedback.y - 30,
+      alpha: 0,
+      duration: 500,
+      ease: "Sine.easeOut",
+      onComplete: () => feedback.destroy(),
+    });
+  }
+
   mapKey(code) {
     const map = {
+      // Flechas
       ArrowLeft: "left",
       ArrowUp: "up",
       ArrowDown: "down",
       ArrowRight: "right",
+      // WASD
       KeyA: "left",
       KeyW: "up",
       KeyS: "down",
       KeyD: "right",
+      // Numpad (para jugador 2)
+      Numpad4: "left",
+      Numpad8: "up",
+      Numpad5: "down",
+      Numpad6: "right",
     };
     return map[code];
   }
@@ -183,7 +240,7 @@ export default class Combo {
       events.emit("update-life", { playerID: this.player.id, vidas: playerState.lives });
     }
 
-    // Feedback visual
+    // Feedback visual de éxito
     const text = this.scene.add.text(this.player.x, this.player.y - 60, "¡BUEN RITMO!", {
       fontFamily: "PixelFont",
       fontSize: 24,
@@ -208,8 +265,7 @@ export default class Combo {
       this.comboLength = Math.min(6, this.comboLength + 1);
       this.cleanupInputHandlers();
       this.currentArrow = null;
-      this.joystickCooldown = false;
-      this.lastStickState = { x: 0, y: 0 };
+      this.dpadCooldown = false;
     });
   }
 
@@ -225,13 +281,15 @@ export default class Combo {
       },
     });
 
+    // Feedback de fallo
+    this.showHitFeedback("¡FALLO!");
+
     this.delay = 1200;
     this.player.canMove = true;
     this.active = false;
     
     this.cleanupInputHandlers();
-    this.joystickCooldown = false;
-    this.lastStickState = { x: 0, y: 0 };
+    this.dpadCooldown = false;
   }
 
   cleanupInputHandlers() {
@@ -247,5 +305,36 @@ export default class Combo {
     if (this.currentArrow && this.currentArrow.active) {
       this.currentArrow.destroy();
     }
+  }
+
+  // ✅ NUEVO MÉTODO: Para debug completo del sistema
+  debugFullInputState(playerKey) {
+    const inputSystem = this.scene.inputSystem;
+    if (!inputSystem) return;
+
+    const gamepad = playerKey === "player1" ? inputSystem.gamepad1 : inputSystem.gamepad2;
+    if (!gamepad) {
+      console.log(`❌ ${playerKey}: No hay gamepad conectado`);
+      return;
+    }
+
+    console.log(`🎮 DEBUG COMPLETO ${playerKey}:`, {
+      expected: this.expected,
+      active: this.active,
+      cooldown: this.dpadCooldown,
+      DPad: {
+        UP: inputSystem.isGamepadPressed(INPUT_ACTIONS.UP, playerKey),
+        DOWN: inputSystem.isGamepadPressed(INPUT_ACTIONS.DOWN, playerKey),
+        LEFT: inputSystem.isGamepadPressed(INPUT_ACTIONS.LEFT, playerKey),
+        RIGHT: inputSystem.isGamepadPressed(INPUT_ACTIONS.RIGHT, playerKey),
+      },
+      DPadJustPressed: {
+        UP: inputSystem.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey),
+        DOWN: inputSystem.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey),
+        LEFT: inputSystem.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey),
+        RIGHT: inputSystem.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey),
+      },
+      totalButtons: gamepad.buttons.length
+    });
   }
 }
