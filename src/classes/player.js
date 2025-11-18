@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { events } from "./GameEvents.js";
-
+import Combo from "./combo.js";
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, id) {
     super(scene, x, y, texture);
@@ -19,6 +19,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.score = 0;
     this.canMove = true;
     this.setCollideWorldBounds(true);
+    // === SISTEMA DE COMBO ===
+    this.combo = new Combo(scene, this);
 
     // === ATAQUE COOP ===
     this.isAttacking = false;

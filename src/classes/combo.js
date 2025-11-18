@@ -89,42 +89,40 @@ export default class Combo {
     }
   }
 
-  update() {
-    if (!this.active || !this.expected || !this.currentArrow || this.dpadCooldown) return;
+ update() {
+  if (!this.active || !this.expected || !this.currentArrow || this.dpadCooldown) return;
 
-    // ✅ DETECCIÓN SOLO D-PAD (botones 12-15)
-    const inputSystem = this.scene.inputSystem;
-    if (!inputSystem) return;
+  const inputSystem = this.scene.inputSystem;
+  if (!inputSystem) return;
 
-    const playerKey = this.player.playerKey; // "player1" o "player2"
-    
-    let detectedInput = null;
+  const playerKey = this.player.playerKey; 
+  let detectedInput = null;
 
-    // ✅ VERIFICAR D-PAD USANDO EL SISTEMA UNIFICADO
-    if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey)) {
-      detectedInput = "left";
-    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) {
-      detectedInput = "right";
-    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey)) {
-      detectedInput = "up";
-    } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey)) {
-      detectedInput = "down";
-    }
-
-    // Procesar input detectado
-    if (detectedInput && detectedInput === this.expected) {
-      this.dpadCooldown = true;
-      this.processInput(detectedInput, this.currentArrow);
-      
-      // Cooldown corto para evitar múltiples detecciones
-      this.scene.time.delayedCall(200, () => {
-        this.dpadCooldown = false;
-      });
-    }
-
-    // ✅ DEBUG: Mostrar estado del D-Pad (opcional)
-    this.debugDpadState(playerKey);
+  // === DETECCIÓN D-PAD USANDO INPUT SYSTEM ===
+  if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey)) {
+    detectedInput = "left";
+  } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) {
+    detectedInput = "right";
+  } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey)) {
+    detectedInput = "up";
+  } else if (inputSystem.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey)) {
+    detectedInput = "down";
   }
+
+  // === SI HIZO LA ENTRADA CORRECTA ===
+  if (detectedInput && detectedInput === this.expected) {
+    this.dpadCooldown = true;
+    this.processInput(detectedInput, this.currentArrow);
+
+    // Evita doble detección
+    this.scene.time.delayedCall(200, () => {
+      this.dpadCooldown = false;
+    });
+  }
+
+  // (Opcional) DEBUG del D-Pad
+  // this.debugDpadState(playerKey);
+}
 
   // ✅ NUEVO MÉTODO: Debug del estado del D-Pad
   debugDpadState(playerKey) {
@@ -150,6 +148,31 @@ export default class Combo {
       console.log(`🎮 D-Pad ${playerKey} presionado:`, pressedButtons, "Expected:", this.expected);
     }
   }
+getUnifiedDirection() {
+  const input = this.scene.inputSystem;
+  const playerKey = this.player.playerKey;
+
+  // 1) DPAD (just pressed)
+  if (input.isGamepadJustPressed(INPUT_ACTIONS.LEFT, playerKey)) return "left";
+  if (input.isGamepadJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) return "right";
+  if (input.isGamepadJustPressed(INPUT_ACTIONS.UP, playerKey)) return "up";
+  if (input.isGamepadJustPressed(INPUT_ACTIONS.DOWN, playerKey)) return "down";
+
+  // 2) ANALÓGICO
+  const pad = playerKey === "player1" ? input.gamepad1 : input.gamepad2;
+  if (pad) {
+    const x = pad.axes[0]?.getValue() || 0;
+    const y = pad.axes[1]?.getValue() || 0;
+
+    if (x < -0.5) return "left";
+    if (x > 0.5) return "right";
+    if (y < -0.5) return "up";
+    if (y > 0.5) return "down";
+  }
+
+  // 3) TECLADO (ya lo manejás así)
+  return null;
+}
 
   processInput(pressed, arrow) {
     if (pressed === this.expected) {

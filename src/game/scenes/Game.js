@@ -7,6 +7,8 @@ import DamageSystem from "../../systems/DamageSystem.js";
 import { ServiceLocator } from "../../systems/ServiceLocator.js";
 import Factory from "../../systems/Factory.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
+import Combo from "../../classes/combo.js";
+
 
 export class Game extends Scene {
   constructor() {
@@ -83,6 +85,14 @@ export class Game extends Scene {
 
     this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, 1);
     this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
+
+
+    // === COMBOS ===
+    this.combo1 = new Combo(this, this.player1);
+    this.combo2 = new Combo(this, this.player2);
+
+
+
 
     // Configurar físicas de jugadores
     this.player1.body.setGravityY(300);
@@ -444,8 +454,13 @@ addClimbLogic(player, playerKey) {
     // UPDATE DE PERSONAJES
     this.player1.update();
     this.player2.update();
+  
+    // UPDATE COMBOS
+    this.combo1.update();
+    this.combo2.update();
 
-    // UPDATE ENEMIGOS
+
+        // UPDATE ENEMIGOS
     this.enemies.forEach(e => e.update?.());
 
 
@@ -517,54 +532,49 @@ if (GameState.mode === "coop") {
 
   console.log(`💀 playerDied - Jugador ${id}:`);
 
-  // 🧡 TODAVÍA LE QUEDAN VIDAS
-  if (st.lives > 1) {
-    st.lives--;
-    events.emit("update-life", { playerID: id, vidas: st.lives });
+  // 🧡 TODAVÍA LE QUEDAN VIDAS → usar DamageSystem
+if (st.lives > 1) {
 
-    // --- Desactivar temporalmente ---
-    player.invulnerable = true;
-    player.body.checkCollision.none = true;
-    player.body.enable = false;
-    player.setVisible(false);
+  // ✔️ Ahora usamos DamageSystem, que:
+  // - resta vida
+  // - emite update-life
+  // - dispara el combo cuando vidas == 2
+  // - maneja tint, invulnerabilidad, knockback, etc.
+  ServiceLocator.get("damage").applyDamage(player, id);
 
-    // --- Respawn inmediato ---
-    const spawn = id === 1 ? this.spawn1 : this.spawn2;
+  // ✔️ Después del daño, hacemos respawn igual que antes:
+  const spawn = id === 1 ? this.spawn1 : this.spawn2;
 
-    this.time.delayedCall(100, () => {
-      // Volvemos a activarlo
-      player.setVisible(true);
-      player.body.enable = true;
-      player.body.allowGravity = true;
-      player.body.checkCollision.none = false;
+  player.setVisible(false);
+  player.body.enable = false;
 
-      // Lo colocamos EXACTO en el spawn
-      player.setPosition(spawn.x, spawn.y);
+  this.time.delayedCall(100, () => {
+    player.setVisible(true);
+    player.body.enable = true;
+    player.body.allowGravity = true;
+    player.body.checkCollision.none = false;
 
-      // Lo frenamos completamente
-      player.setVelocity(0, 0);
+    player.setPosition(spawn.x, spawn.y);
+    player.setVelocity(0, 0);
+    player.y += 1;
 
-      // --- Lo bajamos 1 píxel para que toque plataforma ---
-      player.y += 1;
-
-      // --- Pequeño parpadeo de invulnerabilidad ---
-      this.tweens.add({
-        targets: player,
-        alpha: 0.3,
-        duration: 120,
-        repeat: 8,
-        yoyo: true,
-        onComplete: () => {
-          player.alpha = 1;
-          player.invulnerable = false;
-        }
-      });
-
-      this.audioManager.play("respawn");
+    this.tweens.add({
+      targets: player,
+      alpha: 0.3,
+      duration: 120,
+      repeat: 8,
+      yoyo: true,
+      onComplete: () => {
+        player.alpha = 1;
+        player.invulnerable = false;
+      }
     });
 
-    return;
-  }
+    this.audioManager.play("respawn");
+  });
+
+  return;
+}
 
   // 🖤 Sin vidas → muerte
   st.lives = 0;
