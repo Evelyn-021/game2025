@@ -248,10 +248,47 @@ export class Game extends Scene {
     this.spawn2 = this.objetosMapa.find((o) => o.name === "player2") || { x: 500, y: 200 };
 
     // ===== PARALLAX =====
-    const { layers, stars } = Factory.createParallax(this, mode, width, height);
-    this.bgLayers = layers;
-    this.bgStars = stars;
+  const { layers, stars } = Factory.createParallax(this, mode, width, height);
+  
+  // 🔴 SEPARAR nubes lilas del sistema de parallax
+  this.bgLayers = layers.filter(layer => layer.texture?.key !== "cloudysky");
+  this.staticCloud = layers.find(layer => layer.texture?.key === "cloudysky");
 
+  // Guardar posición original solo de las capas dinámicas
+  this.bgLayers.forEach(layer => {
+    layer.originalX = layer.x;
+    layer.originalY = layer.y;
+  });
+
+  this.bgStars = stars;
+
+  // ⭐ Configurar viento para nubes rosas, amarillas Y nubes lilas
+if (GameState.mode === "versus") {
+  const nubesAmarillas = this.bgLayers.find(layer => layer.texture?.key === "cake_valley_yellow-clouds");
+  const nubesRosasMiddle = this.bgLayers.find(layer => 
+    layer.texture?.key === "cake_valley_cotton-candy-middle");
+  const nubesRosasFront = this.bgLayers.find(layer => 
+    layer.texture?.key === "cake_valley_cotton-candy-front");
+
+  // Nubes lilas (si están en staticCloud)
+  if (this.staticCloud) {
+    this.staticCloud.windPhase = Math.random() * 1000;
+  }
+
+  // Nubes amarillas
+  if (nubesAmarillas) {
+    nubesAmarillas.baseY = nubesAmarillas.y;
+    nubesAmarillas.windPhase = Math.random() * 1000;
+  }
+  
+  // Nubes rosas
+  if (nubesRosasMiddle && nubesRosasFront) {
+    nubesRosasMiddle.baseY = nubesRosasMiddle.y;
+    nubesRosasFront.baseY = nubesRosasFront.y;
+    nubesRosasMiddle.windPhase = Math.random() * 1000;
+    nubesRosasFront.windPhase = Math.random() * 1000;
+  }
+}
     // ===== CAJAS =====
     if (mode === "versus") {
       [this.caja1, this.caja2] = Factory.createBoxes(this);
@@ -509,25 +546,85 @@ update() {
     const targetZoom = Phaser.Math.Clamp(1.2 - dist / 1200, 0.85, 1.2);
     cam.zoom = Phaser.Math.Linear(cam.zoom, targetZoom, 0.05);
 
-    // PARALLAX
-    const vw = this.scale.width / cam.zoom;
-    const vh = this.scale.height / cam.zoom;
+ // =========================================================
+  // PARALLAX - CORREGIDO
+  // =========================================================
+  const vw = this.scale.width / cam.zoom;
+  const vh = this.scale.height / cam.zoom;
+  const ox = cam.midPoint.x;
+  const oy = cam.midPoint.y;
 
-    const ox = cam.midPoint.x;
-    const oy = cam.midPoint.y;
+  // 🔴 NUBES LILAS - ESCALADO FIJO (fuera del bucle)
+if (this.staticCloud) {
+  this.staticCloud.displayWidth = vw * 1.4;
+  this.staticCloud.displayHeight = this.staticCloud.height;
+  
+  // 🔴 MOVIMIENTO OSCILATORIO PARA NUBES LILAS
+  const amplitude = 4;  // Movimiento suave
+  const speed = 0.0008;
+  
+  // Posición base + oscilación (más arriba)
+this.staticCloud.y = 50 + Math.sin(this.time.now * speed + (this.staticCloud.windPhase || 0)) * amplitude;
+  
+  // Oscilación horizontal leve
+  this.staticCloud.x = this.scale.width / 2 + Math.sin(this.time.now * speed * 0.7 + (this.staticCloud.windPhase || 0)) * 10;
+}
+  // 🔴 SOLO procesar capas dinámicas (excluyendo nubes lilas)
+  this.bgLayers.forEach(layer => {
+    const key = layer.texture.key;
 
-    this.bgLayers.forEach(layer => {
-      layer.x = ox;
-      layer.y = oy;
+
+
+
+    // ⭐ Aplicar viento para nubes rosas Y amarillas (nubes lilas se manejan aparte)
+if (
+  GameState.mode === "versus" &&
+  (key === "cake_valley_cotton-candy-middle" ||
+   key === "cake_valley_cotton-candy-front" ||
+   key === "cake_valley_yellow-clouds")
+) {
+  // Diferentes amplitudes y velocidades para variedad
+  let amplitude, speed;
+  
+  switch(key) {
+    case "cake_valley_cotton-candy-middle":
+    case "cake_valley_cotton-candy-front":
+      amplitude = 8;  // Nubes rosas - más movimiento
+      speed = 0.0012;
+      break;
+    case "cake_valley_yellow-clouds":
+      amplitude = 6;  // Nubes amarillas - movimiento medio
+      speed = 0.0010;
+      break;
+    default:
+      amplitude = 6;
+      speed = 0.0010;
+  }
+
+  layer.x = ox + Math.sin(this.time.now * speed + layer.windPhase) * 20;
+  layer.y = layer.baseY + Math.sin(this.time.now * speed * 0.9 + layer.windPhase) * amplitude;
+}
+
+    // ⭐ ESCALADO para capas dinámicas
+    const isPink =
+      key === "cake_valley_cotton-candy-middle" ||
+      key === "cake_valley_cotton-candy-front";
+
+    if (isPink) {
+      layer.displayWidth = vw * 1.4;
+      layer.displayHeight = layer.height;
+    } else {
       layer.displayWidth = vw * 1.4;
       layer.displayHeight = vh * 1.4;
-    });
+    }
+  });
 
-    this.bgStars.x = ox;
-    this.bgStars.y = oy;
-    this.bgStars.displayWidth = vw * 1.6;
-    this.bgStars.displayHeight = vh * 1.6;
-    this.bgStars.tilePositionX += 0.4;
+  // ⭐ STARS
+  this.bgStars.x = ox;
+  this.bgStars.y = oy;
+  this.bgStars.displayWidth = vw * 1.6;
+  this.bgStars.displayHeight = vh * 1.6;
+  this.bgStars.tilePositionX += 0.4;
 
     // CAÍDA DEL MUNDO
     const worldH = this.physics.world.bounds.height;

@@ -58,9 +58,9 @@ this.load.image("cloudsback", "assets/image/escenario/cloudsback.png");
 this.load.image("cloudysky", "assets/image/escenario/cloudysky.png");
 this.load.image("nubes3", "assets/image/escenario/nubes3.png");
 
-this.load.image("nubeRosa1", "assets/image/escenario/nubeRosa1.png");
-this.load.image("nubeRosa2", "assets/image/escenario/nubeRosa2.png");
-this.load.image("nubeRosa3", "assets/image/escenario/nubeRosa3.png");
+this.load.image("nuberosa1", "assets/image/escenario/nuberosa1.png");
+this.load.image("nuberosa2", "assets/image/escenario/nuberosa2.png");
+this.load.image("nuberosa3", "assets/image/escenario/nuberosa3.png");
 
 this.load.image("cake_valley_cupcake", "assets/image/escenario/cake_valley_cupcake.png");
 this.load.image("cake_valley_lemon-cake", "assets/image/escenario/cake_valley_lemon-cake.png");

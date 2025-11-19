@@ -87,27 +87,52 @@ export default class Factory {
   return { layers: [base, nube1, nube2], stars };
 }
 
-    // Versus
-    return {
-      layers: [
-    scene.add.tileSprite(width/2, height/2, width, height, "background2")
-      .setScrollFactor(0).setDepth(-10), // cielo violeta (más lejos)
+// Versus
+const fondoPlano = scene.add.image(width / 2, height / 2, "background2")
+  .setScrollFactor(0)
+  .setDepth(-20);
 
-    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_yellow-clouds")
-      .setScrollFactor(0).setDepth(-9), // nubes amarillas
+// 1️⃣ NUBES LILAS (arriba) - COMO LAS NUBES ROSAS
+const nubesLilas = scene.add.image(width / 2, 46, "cloudysky")
+  .setScrollFactor(0)
+  .setDepth(-19);
 
-    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_mountains")
-      .setScrollFactor(0).setDepth(-8), // montañas
 
-    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_cotton-candy-middle")
-      .setScrollFactor(0).setDepth(-7), // pasteles medios
+// 2️⃣ NUBES AMARILLAS
+const nubesAmarillas = scene.add.tileSprite(width / 2, height / 2 - 20, width, height, "cake_valley_yellow-clouds")
+  .setScrollFactor(0)
+  .setDepth(-18);
 
-    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_cotton-candy-front")
-      .setScrollFactor(0).setDepth(-6), // pasteles cercanos
+// 3️⃣ MONTAÑAS (deben verse bien)
+const montanas = scene.add.image(width / 2, height / 2 + 40, "cake_valley_mountains")
+  .setScrollFactor(0)
+  .setDepth(-17);
+
+// 4️⃣ NUBES ROSAS — middle (tamaño original, SOLO abajo)
+const nubesRosasMiddle = scene.add.image(width / 2, height / 2 + 250, "cake_valley_cotton-candy-middle")
+  .setScrollFactor(0)
+  .setDepth(-16);
+
+// 5️⃣ NUBES ROSAS — front (tamaño original también)
+const nubesRosasFront = scene.add.image(width / 2, height / 2 + 330, "cake_valley_cotton-candy-front")
+  .setScrollFactor(0)
+  .setDepth(-15);
+
+// 6️⃣ ESTRELLAS (suaves)
+const stars = scene.add.tileSprite(width / 2, height / 2 - 120, width, height, "cake_valley_sugar-stars")
+  .setScrollFactor(0)
+  .setDepth(-14);
+
+return {
+  layers: [
+    fondoPlano,
+    nubesLilas,
+    nubesAmarillas,
+    montanas,
+    nubesRosasMiddle,
+    nubesRosasFront,
   ],
-
-  stars: scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_sugar-stars")
-    .setScrollFactor(0).setDepth(-5), // estrellas flotando
+  stars,
 };
   }
 
