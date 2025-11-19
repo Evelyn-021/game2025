@@ -38,37 +38,64 @@ export default class Combo {
   }
 
   showNextArrow() {
-    if (this.currentIndex >= this.sequence.length) {
-      this.complete();
-      return;
-    }
-
-    const dir = this.sequence[this.currentIndex];
-    const x = this.player.x;
-    const y = this.player.y - 100;
-
-    const imgKey = this.getArrowKey(dir);
-    const arrow = this.scene.add.image(x, y - 200, imgKey).setScale(0.9).setDepth(100);
-    this.currentArrow = arrow;
-
-    this.scene.tweens.add({
-      targets: arrow,
-      y: y,
-      duration: 800,
-      ease: "Sine.easeOut",
-    });
-
-    this.expected = dir;
-    this.dpadCooldown = false;
-
-    // ✅ DETECCIÓN MIXTA: Teclado + D-Pad
-    this.setupInputDetection(arrow);
-    
-    // Timeout por si no presiona nada
-    this.scene.time.delayedCall(1800, () => {
-      if (this.active && arrow.active) this.fail(arrow);
-    });
+  if (this.currentIndex >= this.sequence.length) {
+    this.complete();
+    return;
   }
+
+  const dir = this.sequence[this.currentIndex];
+
+  // ===============================
+  // 📌 NUEVA POSICIÓN FIJA POR JUGADOR
+  // ===============================
+  const cam = this.scene.cameras.main;
+  const cx = cam.scrollX + cam.width / 2;
+  const cy = cam.scrollY + cam.height / 2;
+
+  let x, y;
+
+  // Player 1 → izquierda
+  if (this.player.id === 1) {
+    x = cx - cam.width * 0.28;
+    y = cy - cam.height * 0.25;
+  }
+  // Player 2 → derecha
+  else {
+    x = cx + cam.width * 0.28;
+    y = cy - cam.height * 0.25;
+  }
+
+  // ===============================
+  // 📌 CREACIÓN DE LA FLECHA
+  // ===============================
+  const imgKey = this.getArrowKey(dir);
+
+  const arrow = this.scene.add
+    .image(x, y - 80, imgKey)
+    .setScale(0.9)
+    .setDepth(100);
+
+  this.currentArrow = arrow;
+
+  this.scene.tweens.add({
+    targets: arrow,
+    y: y,
+    duration: 800,
+    ease: "Sine.easeOut",
+  });
+
+  this.expected = dir;
+  this.dpadCooldown = false;
+
+  // Detección de teclado + gamepad
+  this.setupInputDetection(arrow);
+
+  // Timeout si no toca nada
+  this.scene.time.delayedCall(1800, () => {
+    if (this.active && arrow.active) this.fail(arrow);
+  });
+}
+
 
   setupInputDetection(arrow) {
     // Limpiar handler anterior
@@ -205,23 +232,39 @@ getUnifiedDirection() {
 
   // ✅ MÉTODO: Feedback visual mejorado
   showHitFeedback(text) {
-    const feedback = this.scene.add.text(this.player.x, this.player.y - 80, text, {
-      fontFamily: "PixelFont",
-      fontSize: 20,
-      color: "#00ff00",
-      stroke: "#000000",
-      strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(120);
 
-    this.scene.tweens.add({
-      targets: feedback,
-      y: feedback.y - 30,
-      alpha: 0,
-      duration: 500,
-      ease: "Sine.easeOut",
-      onComplete: () => feedback.destroy(),
-    });
-  }
+  // === CENTRO DE CÁMARA ===
+  const cam = this.scene.cameras.main;
+  const cx = cam.scrollX + cam.width / 2;
+  const cy = cam.scrollY + cam.height / 2;
+
+  // === POSICIÓN FIJA POR JUGADOR ===
+  let x = (this.player.id === 1)
+    ? cx - cam.width * 0.28
+    : cx + cam.width * 0.28;
+
+  let y = cy - cam.height * 0.32;
+
+  const feedback = this.scene.add.text(x, y, text, {
+    fontFamily: "PixelFont",
+    fontSize: 22,
+    color: text === "¡FALLO!" ? "#ff3333" : "#33ff33",
+    stroke: "#000000",
+    strokeThickness: 3,
+  })
+    .setOrigin(0.5)
+    .setDepth(120);
+
+  this.scene.tweens.add({
+    targets: feedback,
+    y: y - 25,
+    alpha: 0,
+    duration: 500,
+    ease: "Sine.easeOut",
+    onComplete: () => feedback.destroy(),
+  });
+}
+
 
   mapKey(code) {
     const map = {
@@ -286,24 +329,39 @@ getUnifiedDirection() {
     }
 
     // ============================
-    // ✨ FEEDBACK DE ÉXITO
+    // ✨ FEEDBACK DE ÉXITO SEPARADO (IZQ/DER)
     // ============================
+
+    const cam = this.scene.cameras.main;
+    const cx = cam.scrollX + cam.width / 2;
+    const cy = cam.scrollY + cam.height / 2;
+
+    // Player 1 → panel IZQUIERDO
+    // Player 2 → panel DERECHO
+    let x = (this.player.id === 1)
+        ? cx - cam.width * 0.28
+        : cx + cam.width * 0.28;
+
+    let y = cy - cam.height * 0.28;
+
     const text = this.scene.add.text(
-        this.player.x,
-        this.player.y - 60,
+        x,
+        y,
         "¡BUEN RITMO!",
         {
             fontFamily: "PixelFont",
-            fontSize: 24,
+            fontSize: 26,
             color: "#fff300",
             stroke: "#000000",
             strokeThickness: 4,
         }
-    ).setOrigin(0.5).setDepth(120);
+    )
+        .setOrigin(0.5)
+        .setDepth(120);
 
     this.scene.tweens.add({
         targets: text,
-        y: text.y - 40,
+        y: y - 40,
         alpha: 0,
         duration: 1000,
         ease: "Sine.easeInOut",
@@ -311,7 +369,7 @@ getUnifiedDirection() {
     });
 
     // ============================
-    // 🔓 LIBERAR MOVIMIENTO + LIMPIEZA
+    // 🔓 LIBERAR MOVIMIENTO + RESET
     // ============================
     this.scene.time.delayedCall(1200, () => {
         this.player.canMove = true;
@@ -325,35 +383,40 @@ getUnifiedDirection() {
 
 
   fail(arrow) {
-    arrow.setTint(0xff0000);
-    this.scene.tweens.add({
-      targets: arrow,
-      alpha: 0,
-      duration: 300,
-      onComplete: () => {
-        arrow.destroy();
-        this.currentArrow = null;
-      },
-    });
+  // Animación de error
+  arrow.setTint(0xff0000);
+  this.scene.tweens.add({
+    targets: arrow,
+    alpha: 0,
+    duration: 300,
+    onComplete: () => {
+      arrow.destroy();
+      this.currentArrow = null;
+    },
+  });
 
-    // Feedback de fallo
-    this.showHitFeedback("¡FALLO!");
+  // Feedback “FALLO”
+  this.showHitFeedback("¡FALLO!");
 
-    this.delay = 1200;
-    this.player.canMove = true;
-    this.active = false;
-    
-    this.cleanupInputHandlers();
-    this.dpadCooldown = false;
-  }
+  // Reset de este jugador
+  this.delay = 1200;
+  this.player.canMove = true;
+  this.active = false;
+
+  this.cleanupInputHandlers();
+  this.dpadCooldown = false;
+
+  // ⭐ MUY IMPORTANTE:
+  // No relanzar combo del otro jugador.
+  // Solo termina este combo.
+}
+
 
   cleanupInputHandlers() {
-    // Limpiar handler de teclado si existe
-    if (this.keyboardHandler) {
-      // No necesitamos removerlo manualmente porque usamos once()
-      this.keyboardHandler = null;
-    }
+  if (this.keyboardHandler) {
+    this.keyboardHandler = null;
   }
+}
 
   destroy() {
     this.cleanupInputHandlers();

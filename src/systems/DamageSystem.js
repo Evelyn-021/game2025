@@ -21,18 +21,14 @@ if (GameState.mode === "coop") {
     GameState.sharedLives--;
 
     // ⭐ COMBO: aparece cuando sharedLives < 6 (5,4,3,2,1)
-    if (GameState.sharedLives < 6) {
+if (GameState.sharedLives < 6) {
 
-        // JUGADOR 1 → activar si NO está activo
-        if (this.scene.combo1 && !this.scene.combo1.active) {
-            this.scene.combo1.start();
-        }
-
-        // JUGADOR 2 → activar si NO está activo
-        if (this.scene.combo2 && !this.scene.combo2.active) {
-            this.scene.combo2.start();
-        }
+    // 🔥 Lanzar combos SOLO si ambos están inactivos
+    if (!this.scene.combo1.active && !this.scene.combo2.active) {
+        this.scene.combo1.start();
+        this.scene.combo2.start();
     }
+}
 
     // actualizar HUD
     events.emit("update-life", { playerID, vidas: GameState.sharedLives });
