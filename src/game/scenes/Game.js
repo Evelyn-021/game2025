@@ -547,59 +547,52 @@ playerDied(player, id) {
   console.log(`💀 playerDied - Jugador ${id}`);
 
   // ============================================================
-  // 🟦 MODO COOP — VIDAS COMPARTIDAS
-  // ============================================================
-  if (GameState.mode === "coop") {
+// 🟦 MODO COOP — VIDAS COMPARTIDAS
+// ============================================================
+if (GameState.mode === "coop") {
 
-    // restar vida
-    GameState.sharedLives--;
+  // 👉 Aplicar daño correctamente usando el DamageSystem
+  ServiceLocator.get("damage").applyDamage(player, id);
 
-    // activar combo al bajar de 6 → 4 vidas
-    if (GameState.sharedLives < 6) {
-      if (this.scene.combo1) this.scene.combo1.start();
-      if (this.scene.combo2) this.scene.combo2.start();
-    }
-
-    // actualizar HUD
-    events.emit("update-life", { playerID: id, vidas: GameState.sharedLives });
-
-    // sin vidas → game over
-    if (GameState.sharedLives <= 0) {
-      this.handlePlayerDeath(player, id);
-      return;
-    }
-
-    // respawn seguro
-    const spawn = id === 1 ? this.spawn1 : this.spawn2;
-
-    player.invulnerable = true;
-    player.body.enable = false;
-    player.setVisible(false);
-
-    this.time.delayedCall(120, () => {
-      player.setPosition(spawn.x, spawn.y);
-      player.setVelocity(0, 0);
-
-      player.setVisible(true);
-      player.body.enable = true;
-
-      this.tweens.add({
-        targets: player,
-        alpha: 0.3,
-        duration: 120,
-        repeat: 8,
-        yoyo: true,
-        onComplete: () => {
-          player.alpha = 1;
-          player.invulnerable = false;
-        }
-      });
-
-      this.audioManager.play("respawn");
-    });
-
+  // Si ya no hay vidas → Game Over
+  if (GameState.sharedLives <= 0) {
+    this.handlePlayerDeath(player, id);
     return;
   }
+
+  // Respawn
+  const spawn = id === 1 ? this.spawn1 : this.spawn2;
+
+  player.invulnerable = true;
+  player.body.enable = false;
+  player.setVisible(false);
+
+  this.time.delayedCall(120, () => {
+    player.setPosition(spawn.x, spawn.y);
+    player.setVelocity(0, 0);
+
+    player.setVisible(true);
+    player.body.enable = true;
+
+    this.tweens.add({
+      targets: player,
+      alpha: 0.3,
+      duration: 120,
+      repeat: 8,
+      yoyo: true,
+      onComplete: () => {
+        player.alpha = 1;
+        player.invulnerable = false;
+      }
+    });
+
+    this.audioManager.play("respawn");
+  });
+
+  return;
+}
+
+
 
   // ============================================================
   // 🟥 MODO VERSUS — VIDAS INDIVIDUALES
