@@ -17,13 +17,12 @@ export class HUDScene extends Phaser.Scene {
     const W = this.scale.width;
 
     // ========================================
-    // TÍTULO + TIMER (título arriba)
+    // TÍTULO + TIMER
     // ========================================
 
     const modoTexto =
       GameState.mode === "coop" ? "MODO COOPERATIVO" : "MODO VERSUS";
 
-    // TÍTULO ARRIBA
     this.add.text(W / 2, 15, modoTexto, {
       fontFamily: '"Press Start 2P"',
       fontSize: 20,
@@ -34,7 +33,7 @@ export class HUDScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScrollFactor(0);
 
-    // TIMER DEBAJO DEL TÍTULO
+    // TIMER
     this.timeLeft = 120;
 
     this.timerText = this.add.text(W / 2, 50, "02:00", {
@@ -55,126 +54,187 @@ export class HUDScene extends Phaser.Scene {
     });
 
     // ==========================================================
-    //                        COOPERATIVO (VIDA COMPARTIDA)
+    //                        COOPERATIVO
     // ==========================================================
-
     if (GameState.mode === "coop") {
-
       const vidas = GameState.sharedLives ?? 6;
 
-      // ❤️❤️❤️❤️❤️❤️ 6 corazones en fila
-      this.sharedHearts = this.addHearts(30, 95, vidas, 6);
-
-      // DONAS COMPARTIDAS
-      const total =
+      const totalDonas =
         (GameState.player1.donasRecolectadas || 0) +
         (GameState.player2.donasRecolectadas || 0);
 
+      // =======================
+      // ❤️ CORAZONES ARRIBA IZQUIERDA
+      // =======================
+      this.sharedHearts = this.addHearts(30, 65, vidas, 6);
+
+      // =======================
+      // 🍩 DONAS ARRIBA DERECHA
+      // =======================
+
+      // Fondo de caja
       this.add
-        .rectangle(W / 2, 135, 230, 55, 0x000000, 0.45)
+        .rectangle(W - 150, 65, 230, 55, 0x000000, 0.45)
         .setOrigin(0.5)
         .setScrollFactor(0);
 
-      this.add.image(W / 2 - 70, 135, "donas")
+      // Ícono de dona (GUARDADO PARA ANIMAR)
+      this.donaIcon = this.add.image(W - 240, 65, "donas")
         .setScale(1.2)
+        .setOrigin(0.5)
         .setScrollFactor(0);
 
+      // Número de donas
       this.playerDonas = {};
       this.playerDonas.shared = this.add
-        .text(W / 2 - 10, 117, total.toString(), {
+        .text(W - 200, 47, totalDonas.toString(), {
           fontFamily: '"Press Start 2P"',
-          fontSize: 24,
+          fontSize: 22,
           color: "#ffddf5",
-          stroke: "#000000",
+          stroke: "#000",
           strokeThickness: 6,
         })
+        .setOrigin(0, 0)
+        .setScrollFactor(0);
+
+      // Meta de donas
+      const meta = GameState.metaDonas || 30;
+
+      this.metaDonasText = this.add.text(
+        W - 120,
+        47,
+        `/ ${meta}`,
+        {
+          fontFamily: '"Press Start 2P"',
+          fontSize: 20,
+          color: "#ffffff",
+          stroke: "#000",
+          strokeThickness: 6,
+        }
+      )
         .setOrigin(0, 0)
         .setScrollFactor(0);
     }
 
     // ==========================================================
-    //                           VERSUS
-    // ==========================================================
+//                      VERSUS
+// ==========================================================
+if (GameState.mode === "versus") {
+  this.playerDonas = {};
 
-    if (GameState.mode === "versus") {
+  // ===========================
+  // ❤️ CORAZONES JUGADOR 1
+  // ===========================
+  this.heartsP1 = this.addHearts(40, 40, GameState.player1.lives);
 
-      this.playerDonas = {};
+  // ===========================
+  // ❤️ CORAZONES JUGADOR 2
+  // ===========================
+  this.heartsP2 = this.addHearts(W - 200, 40, GameState.player2.lives);
 
-      // ❤️ HEARTS P1
-      this.heartsP1 = this.addHearts(30, 95, GameState.player1.lives);
+  // ===========================
+  // 🍩 DONAS JUGADOR 1
+  // ===========================
 
-      // ❤️ HEARTS P2
-      this.heartsP2 = this.addHearts(W - 160, 95, GameState.player2.lives);
+  // Fondo gris oscuro P1
+  this.add.rectangle(120, 100, 170, 55, 0x000000, 0.45)
+    .setOrigin(0.5)
+    .setScrollFactor(0);
 
-      // DONAS P1
-      this.add
-        .rectangle(80, 150, 150, 55, 0x000000, 0.45)
-        .setOrigin(0.5)
-        .setScrollFactor(0);
+  // Ícono de dona P1 (GUARDAR REFERENCIA)
+  this.donaP1 = this.add.image(60, 100, "donas")
+    .setScale(1.1)
+    .setScrollFactor(0)
+    .setOrigin(0.5);
 
-      this.add.image(30, 150, "donas")
-        .setScale(1.1)
-        .setScrollFactor(0);
-
-      this.playerDonas.P1 = this.add
-        .text(75, 132, GameState.player1.donasRecolectadas || "0", {
-          fontFamily: '"Press Start 2P"',
-          fontSize: 22,
-          color: "#ff99cc",
-          stroke: "#000",
-          strokeThickness: 6,
-        })
-        .setOrigin(0.5)
-        .setScrollFactor(0);
-
-      // DONAS P2
-      this.add
-        .rectangle(W - 80, 150, 150, 55, 0x000000, 0.45)
-        .setOrigin(0.5)
-        .setScrollFactor(0);
-
-      this.add.image(W - 135, 150, "donas")
-        .setScale(1.1)
-        .setScrollFactor(0);
-
-      this.playerDonas.P2 = this.add
-        .text(W - 85, 132, GameState.player2.donasRecolectadas || "0", {
-          fontFamily: '"Press Start 2P"',
-          fontSize: 22,
-          color: "#99ccff",
-          stroke: "#000",
-          strokeThickness: 6,
-        })
-        .setOrigin(0.5)
-        .setScrollFactor(0);
+  // Texto número P1
+  this.playerDonas.P1 = this.add.text(
+    130, 100,
+    GameState.player1.donasRecolectadas || "0",
+    {
+      fontFamily: '"Press Start 2P"',
+      fontSize: 22,
+      color: "#ff99cc",
+      stroke: "#000",
+      strokeThickness: 6,
     }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+  // ===========================
+  // 🍩 DONAS JUGADOR 2
+  // ===========================
+
+  this.add.rectangle(W - 120, 100, 170, 55, 0x000000, 0.45)
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+  this.donaP2 = this.add.image(W - 180, 100, "donas")
+    .setScale(1.1)
+    .setScrollFactor(0)
+    .setOrigin(0.5);
+
+  this.playerDonas.P2 = this.add.text(
+    W - 115, 100,
+    GameState.player2.donasRecolectadas || "0",
+    {
+      fontFamily: '"Press Start 2P"',
+      fontSize: 22,
+      color: "#99ccff",
+      stroke: "#000",
+      strokeThickness: 6,
+    }
+  )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+}
+
 
     // ==========================================================
     // EVENTOS + ANIMACIONES
     // ==========================================================
 
     events.on("update-donas", ({ playerID, cantidad }) => {
-      if (GameState.mode === "coop") {
-        this.playerDonas.shared.setText(cantidad);
-        this.animateDonutPop(this.playerDonas.shared);
-        return;
-      }
+  
+  if (GameState.mode === "coop") {
+    this.playerDonas.shared.setText(cantidad);
+    this.animateDonutPop(this.playerDonas.shared);
+    this.animateDonutIcon();
+    return;
+  }
 
-      if (GameState.mode === "versus") {
-        if (playerID === 1) {
-          this.playerDonas.P1.setText(cantidad);
-          this.animateDonutPop(this.playerDonas.P1);
-        }
-        if (playerID === 2) {
-          this.playerDonas.P2.setText(cantidad);
-          this.animateDonutPop(this.playerDonas.P2);
-        }
-      }
+  // 🎮 VERSUS
+  if (playerID === 1) {
+    this.playerDonas.P1.setText(cantidad);
+
+    this.animateDonutPop(this.playerDonas.P1);
+    this.tweens.add({
+      targets: this.donaP1,
+      scale: { from: 1.1, to: 1.35 },
+      yoyo: true,
+      duration: 150,
+      ease: "Back.easeOut",
     });
+  }
+
+  if (playerID === 2) {
+    this.playerDonas.P2.setText(cantidad);
+
+    this.animateDonutPop(this.playerDonas.P2);
+    this.tweens.add({
+      targets: this.donaP2,
+      scale: { from: 1.1, to: 1.35 },
+      yoyo: true,
+      duration: 150,
+      ease: "Back.easeOut",
+    });
+  }
+});
+
 
     events.on("update-life", ({ playerID, vidas }) => {
-
-      // ❤️ COOP → vidas compartidas
+      // Coop
       if (GameState.mode === "coop") {
         GameState.sharedLives = vidas;
 
@@ -186,7 +246,7 @@ export class HUDScene extends Phaser.Scene {
         return;
       }
 
-      // ❤️ VERSUS
+      // Versus
       const hearts = playerID === 1 ? this.heartsP1 : this.heartsP2;
       this.updateHearts(hearts, vidas);
 
@@ -217,7 +277,7 @@ export class HUDScene extends Phaser.Scene {
     });
   }
 
-  // ✨ POP DONA
+  // ✨ POP número
   animateDonutPop(donutText) {
     this.tweens.add({
       targets: donutText,
@@ -225,6 +285,17 @@ export class HUDScene extends Phaser.Scene {
       yoyo: true,
       duration: 120,
       ease: "Quad.easeOut",
+    });
+  }
+
+  // ✨ POP ÍCONO DE DONA
+  animateDonutIcon() {
+    this.tweens.add({
+      targets: this.donaIcon,
+      scale: { from: 1.2, to: 1.5 },
+      yoyo: true,
+      duration: 140,
+      ease: "Back.easeOut",
     });
   }
 
@@ -239,7 +310,7 @@ export class HUDScene extends Phaser.Scene {
     });
   }
 
-  // 🕒 timer
+  // 🕒 Timer
   updateTimer() {
     this.timeLeft--;
     const m = Math.floor(this.timeLeft / 60);

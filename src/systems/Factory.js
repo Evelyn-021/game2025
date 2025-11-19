@@ -59,26 +59,56 @@ export default class Factory {
    */
   static createParallax(scene, mode, width, height) {
     if (mode === "coop") {
-      return {
-        layers: [
-          scene.add.image(0, 0, "background3").setOrigin(0).setScrollFactor(0).setDepth(-10),
-          scene.add.tileSprite(0, 0, width, height, "nubelila1").setOrigin(0).setScrollFactor(0).setDepth(-9),
-          scene.add.tileSprite(0, 0, width, height, "nubelila2").setOrigin(0).setScrollFactor(0).setDepth(-8),
-        ],
-        stars: scene.add.tileSprite(0, 0, width, height, "nubeparallax").setOrigin(0).setScrollFactor(0).setDepth(-7),
-      };
-    }
+
+  const base = scene.add.tileSprite(
+    width/2, height/2,
+    width, height,
+    "background3"
+  ).setScrollFactor(0).setDepth(-10);
+
+  const nube1 = scene.add.tileSprite(
+    width/2, height/2,
+    width, height,
+    "nubelila1"
+  ).setScrollFactor(0).setDepth(-9);
+
+  const nube2 = scene.add.tileSprite(
+    width/2, height/2,
+    width, height,
+    "nubelila2"
+  ).setScrollFactor(0).setDepth(-8);
+
+  const stars = scene.add.tileSprite(
+    width/2, height/2,
+    width, height,
+    "nubeparallax"
+  ).setScrollFactor(0).setDepth(-7);
+
+  return { layers: [base, nube1, nube2], stars };
+}
 
     // Versus
     return {
       layers: [
-        scene.add.image(0, 0, "background2").setOrigin(0.5).setScrollFactor(0).setDepth(-6),
-        scene.add.image(0, 0, "cake_valley_yellow-clouds").setOrigin(0.5).setScrollFactor(0).setDepth(-5),
-        scene.add.image(0, 0, "cake_valley_cotton-candy-middle").setOrigin(0.5).setScrollFactor(0).setDepth(-4),
-        scene.add.image(0, 0, "cake_valley_cotton-candy-front").setOrigin(0.5).setScrollFactor(0).setDepth(-3),
-      ],
-      stars: scene.add.tileSprite(0, 0, width, height, "cake_valley_sugar-stars").setOrigin(0.5).setScrollFactor(0).setDepth(-2),
-    };
+    scene.add.tileSprite(width/2, height/2, width, height, "background2")
+      .setScrollFactor(0).setDepth(-10), // cielo violeta (más lejos)
+
+    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_yellow-clouds")
+      .setScrollFactor(0).setDepth(-9), // nubes amarillas
+
+    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_mountains")
+      .setScrollFactor(0).setDepth(-8), // montañas
+
+    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_cotton-candy-middle")
+      .setScrollFactor(0).setDepth(-7), // pasteles medios
+
+    scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_cotton-candy-front")
+      .setScrollFactor(0).setDepth(-6), // pasteles cercanos
+  ],
+
+  stars: scene.add.tileSprite(width/2, height/2, width, height, "cake_valley_sugar-stars")
+    .setScrollFactor(0).setDepth(-5), // estrellas flotando
+};
   }
 
   /**

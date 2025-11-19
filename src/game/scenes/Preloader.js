@@ -34,16 +34,42 @@ export class Preloader extends Scene {
     this.load.tilemapTiledJSON("map2", "assets/tilemap/map2.json");
 
     // === PARALLAX ===
-   this.load.image("background2", "assets/image/escenario/background2.png");
-    this.load.image("cake_valley_yellow-clouds", "assets/image/escenario/cake_valley_yellow-clouds.png");
-    this.load.image("cake_valley_cotton-candy-middle", "assets/image/escenario/cake_valley_cotton-candy-middle.png");
-    this.load.image("cake_valley_cotton-candy-front", "assets/image/escenario/cake_valley_cotton-candy-front.png");
-    this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
-    this.load.image("background3", "assets/image/escenario/background3.png");
-    this.load.image("nubelila1", "assets/image/escenario/nubelila1.png");
-    this.load.image("nubelila2", "assets/image/escenario/nubelila2.png");
-    this.load.image("nubes3", "assets/image/escenario/nubes3.png");
-    this.load.image("nubeparallax", "assets/image/escenario/nubeparallax.png");
+//
+// MODO COOPERATIVO  🌍 (Lila Land)
+// -------------------------------------------------
+this.load.image("background3", "assets/image/escenario/background3.png");
+this.load.image("nubelila1", "assets/image/escenario/nubelila1.png");
+this.load.image("nubelila2", "assets/image/escenario/nubelila2.png");
+this.load.image("nubes3", "assets/image/escenario/nubes3.png");
+this.load.image("nubeparallax", "assets/image/escenario/nubeparallax.png");
+
+// -------------------------------------------------
+//
+// MODO VERSUS  🍰 (Cake Valley)
+// -------------------------------------------------
+this.load.image("background2", "assets/image/escenario/background2.png");
+this.load.image("cake_valley_yellow-clouds", "assets/image/escenario/cake_valley_yellow-clouds.png");
+this.load.image("cake_valley_cotton-candy-middle", "assets/image/escenario/cake_valley_cotton-candy-middle.png");
+this.load.image("cake_valley_cotton-candy-front", "assets/image/escenario/cake_valley_cotton-candy-front.png");
+this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
+
+this.load.image("cloudcandyback", "assets/image/escenario/cloudcandyback.png");
+this.load.image("cloudsback", "assets/image/escenario/cloudsback.png");
+this.load.image("cloudysky", "assets/image/escenario/cloudysky.png");
+this.load.image("nubes3", "assets/image/escenario/nubes3.png");
+
+this.load.image("nubeRosa1", "assets/image/escenario/nubeRosa1.png");
+this.load.image("nubeRosa2", "assets/image/escenario/nubeRosa2.png");
+this.load.image("nubeRosa3", "assets/image/escenario/nubeRosa3.png");
+
+this.load.image("cake_valley_cupcake", "assets/image/escenario/cake_valley_cupcake.png");
+this.load.image("cake_valley_lemon-cake", "assets/image/escenario/cake_valley_lemon-cake.png");
+this.load.image("cake_valley_mountains", "assets/image/escenario/cake_valley_mountains.png");
+this.load.image("cake_valley_princess-cake", "assets/image/escenario/cake_valley_princess-cake.png");
+this.load.image("cake_valley_strawberry-cake", "assets/image/escenario/cake_valley_strawberry-cake.png");
+this.load.image("cake_valley_strawberry-cake-castle", "assets/image/escenario/cake_valley_strawberry-cake-castle.png");
+this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
+
     //PERSONAJES
     this.load.atlas('Pinky', 'assets/image/personajes/Pinky.png', 'assets/image/personajes/Pinky.json');
     this.load.atlas('Lamb', 'assets/image/personajes/Lamb.png', 'assets/image/personajes/Lamb.json');

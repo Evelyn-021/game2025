@@ -17,29 +17,36 @@ if (GameState.mode === "coop") {
 
     if (player.invulnerable) return;
 
-    // restar vida del pool compartido
+    const vidaAntes = GameState.sharedLives;
+
+    // Quitar vida compartida
     GameState.sharedLives--;
 
-    // ⭐ COMBO: aparece cuando sharedLives < 6 (5,4,3,2,1)
-if (GameState.sharedLives < 6) {
-
-    // 🔥 Lanzar combos SOLO si ambos están inactivos
-    if (!this.scene.combo1.active && !this.scene.combo2.active) {
-        this.scene.combo1.start();
-        this.scene.combo2.start();
-    }
-}
-
-    // actualizar HUD
+    // HUD
     events.emit("update-life", { playerID, vidas: GameState.sharedLives });
 
-    // si llegó a 0 → muerte total
+    // ⭐ LANZAR COMBO SOLO SI LA VIDA BAJÓ
+    if (GameState.sharedLives < vidaAntes) {
+
+        // No lanzar si ya hay un combo activo
+        const comboActivo =
+            this.scene.combo1.active ||
+            this.scene.combo2.active;
+
+        if (!comboActivo && GameState.sharedLives < 6) {
+            // Se activa solo el combo del jugador dañado
+            if (playerID === 1) this.scene.combo1.start();
+            if (playerID === 2) this.scene.combo2.start();
+        }
+    }
+
+    // FIN: si las vidas llegan a 0 → muerte total
     if (GameState.sharedLives <= 0) {
         events.emit("player-dead", { player, playerID });
         return;
     }
 
-    // invulnerabilidad temporal
+    // Invulnerabilidad normal
     player.invulnerable = true;
     player.setTint(0xffaaaa);
 
@@ -50,6 +57,7 @@ if (GameState.sharedLives < 6) {
 
     return;
 }
+
 
 
 
