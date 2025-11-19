@@ -558,57 +558,98 @@ update() {
 if (this.staticCloud) {
   this.staticCloud.displayWidth = vw * 1.4;
   this.staticCloud.displayHeight = this.staticCloud.height;
-  
-  // 🔴 MOVIMIENTO OSCILATORIO PARA NUBES LILAS
-  const amplitude = 4;  // Movimiento suave
-  const speed = 0.0008;
-  
-  // Posición base + oscilación (más arriba)
-this.staticCloud.y = 50 + Math.sin(this.time.now * speed + (this.staticCloud.windPhase || 0)) * amplitude;
-  
-  // Oscilación horizontal leve
-  this.staticCloud.x = this.scale.width / 2 + Math.sin(this.time.now * speed * 0.7 + (this.staticCloud.windPhase || 0)) * 10;
+
+
+// Mantener fija la altura
+this.staticCloud.y = 50;
+
+// Movimiento horizontal suave
+this.staticCloud.x =
+  this.scale.width / 2 +
+  Math.sin(this.time.now * 0.0007 + (this.staticCloud.windPhase || 0)) * 12;
+
+
+
+
+
+
 }
   // 🔴 SOLO procesar capas dinámicas (excluyendo nubes lilas)
   this.bgLayers.forEach(layer => {
     const key = layer.texture.key;
 
+  // 💛 Movimiento de nubes amarillas (ahora son IMAGE)
+  if (layer.isYellowCloud) {
+    layer.x =
+      ox + Math.sin(this.time.now * 0.001 + layer.windPhase) * 16;
+
+    layer.y = layer.baseY;
+
+    return; // muy importante
+  }
 
 
 
-    // ⭐ Aplicar viento para nubes rosas Y amarillas (nubes lilas se manejan aparte)
+// ⭐ Movimiento horizontal SOLAMENTE (como nubes rosas)
 if (
   GameState.mode === "versus" &&
   (key === "cake_valley_cotton-candy-middle" ||
    key === "cake_valley_cotton-candy-front" ||
    key === "cake_valley_yellow-clouds")
 ) {
-  // Diferentes amplitudes y velocidades para variedad
-  let amplitude, speed;
+  let amplitudeX, speedX;
   
   switch(key) {
     case "cake_valley_cotton-candy-middle":
     case "cake_valley_cotton-candy-front":
-      amplitude = 8;  // Nubes rosas - más movimiento
-      speed = 0.0012;
+      amplitudeX = 20;
+      speedX = 0.0012;
       break;
+
     case "cake_valley_yellow-clouds":
-      amplitude = 6;  // Nubes amarillas - movimiento medio
-      speed = 0.0010;
+      amplitudeX = 16;
+      speedX = 0.0010;
       break;
-    default:
-      amplitude = 6;
-      speed = 0.0010;
   }
 
-  layer.x = ox + Math.sin(this.time.now * speed + layer.windPhase) * 20;
-  layer.y = layer.baseY + Math.sin(this.time.now * speed * 0.9 + layer.windPhase) * amplitude;
+
+
+  // 👉 SOLO OSCILACIÓN HORIZONTAL
+if (layer.isYellowCloud) {
+
+
+  // ⭐ TILESPRITE → su movimiento es tilePositionX
+  layer.tilePositionX =
+    Math.sin(this.time.now * speedX + layer.windPhase) * amplitudeX;
+
+  layer.x = ox;            // fija su posición en cámara
+  layer.y = layer.baseY;   // no se mueve para arriba/abajo
+
+} else {
+
+  // ⭐ ROSAS (middle/front) → movimiento normal
+  layer.x =
+    ox + Math.sin(this.time.now * speedX + layer.windPhase) * amplitudeX;
+
+  layer.y = layer.baseY;
+}
+
+
+
+  // 👉 Mantener su Y fija SIEMPRE
+  layer.y = layer.baseY;
 }
 
     // ⭐ ESCALADO para capas dinámicas
     const isPink =
-      key === "cake_valley_cotton-candy-middle" ||
-      key === "cake_valley_cotton-candy-front";
+  key === "cake_valley_cotton-candy-middle" ||
+  key === "cake_valley_cotton-candy-front" ||
+  key === "cake_valley_yellow-clouds";
+
+// ❗ NO ESCALAR TORRES NI NUBE AMARILLA
+if (layer.isTower || layer.isYellowCloud || layer.isCandyBack) {
+    return;
+}
 
     if (isPink) {
       layer.displayWidth = vw * 1.4;

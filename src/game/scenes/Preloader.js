@@ -62,12 +62,18 @@ this.load.image("nuberosa1", "assets/image/escenario/nuberosa1.png");
 this.load.image("nuberosa2", "assets/image/escenario/nuberosa2.png");
 this.load.image("nuberosa3", "assets/image/escenario/nuberosa3.png");
 
+//DIRIJIBLE (GLOBO FLOTANTE)
 this.load.image("cake_valley_cupcake", "assets/image/escenario/cake_valley_cupcake.png");
-this.load.image("cake_valley_lemon-cake", "assets/image/escenario/cake_valley_lemon-cake.png");
+
+//MONTAÑA
 this.load.image("cake_valley_mountains", "assets/image/escenario/cake_valley_mountains.png");
+
+//TORRES
+this.load.image("cake_valley_lemon-cake", "assets/image/escenario/cake_valley_lemon-cake.png");
 this.load.image("cake_valley_princess-cake", "assets/image/escenario/cake_valley_princess-cake.png");
 this.load.image("cake_valley_strawberry-cake", "assets/image/escenario/cake_valley_strawberry-cake.png");
 this.load.image("cake_valley_strawberry-cake-castle", "assets/image/escenario/cake_valley_strawberry-cake-castle.png");
+//ESTRELLAS
 this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_sugar-stars.png");
 
     //PERSONAJES

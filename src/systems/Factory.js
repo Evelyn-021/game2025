@@ -99,14 +99,92 @@ const nubesLilas = scene.add.image(width / 2, 46, "cloudysky")
 
 
 // 2️⃣ NUBES AMARILLAS
-const nubesAmarillas = scene.add.tileSprite(width / 2, height / 2 - 20, width, height, "cake_valley_yellow-clouds")
+const nubesAmarillas = scene.add.image(
+  width / 2,
+  height / 2 - 20,
+  "cake_valley_yellow-clouds"
+)
   .setScrollFactor(0)
   .setDepth(-18);
 
-// 3️⃣ MONTAÑAS (deben verse bien)
+nubesAmarillas.setOrigin(0.5, 0.5);
+nubesAmarillas.isYellowCloud = true;
+
+
+
+// 3️⃣ MONTAÑAS 
 const montanas = scene.add.image(width / 2, height / 2 + 40, "cake_valley_mountains")
   .setScrollFactor(0)
   .setDepth(-17);
+
+// ⭐ COTTON CANDY BACK (Imagen doble más abajo)
+const candyBackLeft = scene.add.image(
+  width * 0.25,
+  height / 2 + 180,  // 📌 MÁS ABAJO
+  "cloudcandyback"
+)
+.setScrollFactor(0)
+.setDepth(-16.9);
+candyBackLeft.setOrigin(0.5);
+candyBackLeft.baseX = candyBackLeft.x;
+candyBackLeft.baseY = candyBackLeft.y;
+candyBackLeft.isCandyBack = true;
+
+const candyBackRight = scene.add.image(
+  width * 0.75,
+  height / 2 + 180,  // 📌 MISMA ALTURA
+  "cloudcandyback"
+)
+.setScrollFactor(0)
+.setDepth(-16.9);
+candyBackRight.setOrigin(0.5);
+candyBackRight.baseX = candyBackRight.x;
+candyBackRight.baseY = candyBackRight.y;
+candyBackRight.isCandyBack = true;
+
+
+
+// 🌄 TORRES (grupo)  
+// 🏰 TORRE 1 (Castillo principal)
+const torre1 = scene.add.image(
+  width / 2,
+  height / 2 + 100,
+  "cake_valley_strawberry-cake-castle"
+)
+.setScrollFactor(0)
+.setDepth(-16.5);
+torre1.setOrigin(0.5);
+torre1.baseX = torre1.x;
+torre1.baseY = torre1.y;
+torre1.isTower = true;
+
+// 🍋 TORRE 2 (Lemon Cake Tower)
+const torre2 = scene.add.image(
+  width / 2 - 400,     // 📌 izquierda
+  height / 2 + 120,
+  "cake_valley_lemon-cake"
+)
+.setScrollFactor(0)
+.setDepth(-15.5);
+torre2.setOrigin(0.5);
+torre2.baseX = torre2.x;
+torre2.baseY = torre2.y;
+torre2.isTower = true;
+
+// 👑 TORRE 3 (Princess Cake Tower)
+const torre3 = scene.add.image(
+  width / 2 + 500,     // 📌 derecha
+  height / 2 + 80,
+  "cake_valley_princess-cake"
+)
+.setScrollFactor(0)
+.setDepth(-16.95);
+torre3.setOrigin(0.5);
+torre3.baseX = torre3.x;
+torre3.baseY = torre3.y;
+torre3.isTower = true;
+
+
 
 // 4️⃣ NUBES ROSAS — middle (tamaño original, SOLO abajo)
 const nubesRosasMiddle = scene.add.image(width / 2, height / 2 + 250, "cake_valley_cotton-candy-middle")
@@ -125,13 +203,18 @@ const stars = scene.add.tileSprite(width / 2, height / 2 - 120, width, height, "
 
 return {
   layers: [
-    fondoPlano,
-    nubesLilas,
-    nubesAmarillas,
-    montanas,
-    nubesRosasMiddle,
-    nubesRosasFront,
-  ],
+  fondoPlano,
+  nubesLilas,
+  nubesAmarillas,
+  montanas,
+  candyBackLeft,
+  candyBackRight,
+  torre1, //Castillo
+  torre3, //Postre
+  nubesRosasMiddle,
+  torre2, //Torre de limon
+  nubesRosasFront
+],
   stars,
 };
   }
