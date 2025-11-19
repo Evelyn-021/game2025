@@ -538,43 +538,51 @@ update() {
   }
 
   // =============================================================
-// MUERTE Y RESPAWN - CORREGIDO PARA COOP (vidas compartidas)
+// MUERTE Y RESPAWN - VERSUS / COOP 100% ARREGLADO
 // =============================================================
 playerDied(player, id) {
+
   if (!player.active || player.invulnerable) return;
 
   console.log(`💀 playerDied - Jugador ${id}`);
 
-  // BLOQUEO INMEDIATO PARA QUE NO SE REPITA
-  player.invulnerable = true;      
-  player.body.enable = false;      
-  player.setVisible(false);        
-
-  // =====================================
-  // 🟦 COOPERATIVO → vidas compartidas
-  // =====================================
+  // ============================================================
+  // 🟦 MODO COOP — VIDAS COMPARTIDAS
+  // ============================================================
   if (GameState.mode === "coop") {
+
+    // restar vida
     GameState.sharedLives--;
 
+    // activar combo al bajar de 6 → 4 vidas
+    if (GameState.sharedLives < 6) {
+      if (this.scene.combo1) this.scene.combo1.start();
+      if (this.scene.combo2) this.scene.combo2.start();
+    }
+
+    // actualizar HUD
     events.emit("update-life", { playerID: id, vidas: GameState.sharedLives });
 
-    // 🔥 Sin vidas → game over
+    // sin vidas → game over
     if (GameState.sharedLives <= 0) {
       this.handlePlayerDeath(player, id);
       return;
     }
 
-    // ===== Respawn =====
+    // respawn seguro
     const spawn = id === 1 ? this.spawn1 : this.spawn2;
 
-    this.time.delayedCall(150, () => {
+    player.invulnerable = true;
+    player.body.enable = false;
+    player.setVisible(false);
+
+    this.time.delayedCall(120, () => {
       player.setPosition(spawn.x, spawn.y);
       player.setVelocity(0, 0);
 
-      player.body.enable = true;
       player.setVisible(true);
+      player.body.enable = true;
 
-      // parpadeo + restaurar invulnerabilidad
       this.tweens.add({
         targets: player,
         alpha: 0.3,
@@ -593,12 +601,16 @@ playerDied(player, id) {
     return;
   }
 
+  // ============================================================
+  // 🟥 MODO VERSUS — VIDAS INDIVIDUALES
+  // ============================================================
+  const key = id === 1 ? "player1" : "player2";
+  const st = GameState[key];
 
-  // ============================================================
-  // 🟥 VERSUS → lógica tradicional (vidas individuales)
-  // ============================================================
+  // si todavía tiene más vidas → respawn normal
   if (st.lives > 1) {
-    // usa DamageSystem (knockback, tint, HUD update, etc.)
+
+    // aplicar daño con el sistema
     ServiceLocator.get("damage").applyDamage(player, id);
 
     const spawn = id === 1 ? this.spawn1 : this.spawn2;
@@ -630,7 +642,7 @@ playerDied(player, id) {
     return;
   }
 
-  // 🖤 Sin vidas individuales → muerte
+  // sin vidas → muerte total
   st.lives = 0;
   this.handlePlayerDeath(player, id);
 }

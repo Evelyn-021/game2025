@@ -10,65 +10,96 @@ export default class DamageSystem {
 
    applyDamage(player, playerID) {
 
-  // ==========================================
-  // 🟦 COOPERATIVO → vidas compartidas
-  // ==========================================
-  if (GameState.mode === "coop") {
+ // ==========================================
+// 🟦 COOP → vidas compartidas
+// ==========================================
+if (GameState.mode === "coop") {
+
     if (player.invulnerable) return;
 
-    // restar 1 vida del pool compartido
+    // restar vida del pool compartido
     GameState.sharedLives--;
+
+    // ⭐ COMBO: aparece cuando sharedLives < 6 (5,4,3,2,1)
+    if (GameState.sharedLives < 6) {
+
+        // JUGADOR 1 → activar si NO está activo
+        if (this.scene.combo1 && !this.scene.combo1.active) {
+            this.scene.combo1.start();
+        }
+
+        // JUGADOR 2 → activar si NO está activo
+        if (this.scene.combo2 && !this.scene.combo2.active) {
+            this.scene.combo2.start();
+        }
+    }
 
     // actualizar HUD
     events.emit("update-life", { playerID, vidas: GameState.sharedLives });
 
     // si llegó a 0 → muerte total
     if (GameState.sharedLives <= 0) {
-      events.emit("player-dead", { player, playerID });
-      return;
+        events.emit("player-dead", { player, playerID });
+        return;
     }
 
-    // Invulnerabilidad temporal
+    // invulnerabilidad temporal
     player.invulnerable = true;
     player.setTint(0xffaaaa);
 
     this.scene.time.delayedCall(800, () => {
-      player.clearTint();
-      player.invulnerable = false;
+        player.clearTint();
+        player.invulnerable = false;
     });
 
     return;
-  }
+}
+
 
 
   // ==========================================
-  // 🟥 VERSUS → lógica individual de siempre
-  // ==========================================
-  const key = playerID === 1 ? "player1" : "player2";
-  const state = GameState[key];
+// 🟥 VERSUS → lógica individual
+// ==========================================
+const key = playerID === 1 ? "player1" : "player2";
+const state = GameState[key];
 
-  if (player.invulnerable) return;
+if (player.invulnerable) return;
 
-  // bajar una vida individual
-  state.lives--;
+// bajar una vida individual
+state.lives--;
 
-  // HUD
-  events.emit("update-life", { playerID, vidas: state.lives });
+// ⭐ COMBO: aparece cuando las vidas quedan en 2 o 1
+if (GameState.mode === "versus" && state.lives < 3) {
 
-  // si llegó a 0 → muerte
-  if (state.lives <= 0) {
+    // jugador 1
+    if (playerID === 1 && this.scene.combo1 && !this.scene.combo1.active) {
+        this.scene.combo1.start();
+    }
+
+    // jugador 2
+    if (playerID === 2 && this.scene.combo2 && !this.scene.combo2.active) {
+        this.scene.combo2.start();
+    }
+}
+
+// HUD
+events.emit("update-life", { playerID, vidas: state.lives });
+
+// si llegó a 0 → muerte
+if (state.lives <= 0) {
     events.emit("player-dead", { player, playerID });
     return;
-  }
+}
 
-  // Invulnerabilidad
-  player.invulnerable = true;
-  player.setTint(0xffaaaa);
+// Invulnerabilidad temporal
+player.invulnerable = true;
+player.setTint(0xffaaaa);
 
-  this.scene.time.delayedCall(800, () => {
+this.scene.time.delayedCall(800, () => {
     player.clearTint();
     player.invulnerable = false;
-  });
+});
+
 }
 
 

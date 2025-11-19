@@ -256,41 +256,73 @@ getUnifiedDirection() {
   complete() {
     this.scene.audioManager.play("salud");
 
-    // ❤️ Curar jugador
-    const playerState = this.player.id === 1 ? GameState.player1 : GameState.player2;
-    if (playerState.lives < 3) {
-      playerState.lives++;
-      events.emit("update-life", { playerID: this.player.id, vidas: playerState.lives });
+    // ============================
+    // ❤️ COOP → CURA VIDA COMPARTIDA
+    // ============================
+    if (GameState.mode === "coop") {
+        if (GameState.sharedLives < 6) {
+            GameState.sharedLives++;
+
+            events.emit("update-life", {
+                playerID: this.player.id,
+                vidas: GameState.sharedLives
+            });
+        }
     }
 
-    // Feedback visual de éxito
-    const text = this.scene.add.text(this.player.x, this.player.y - 60, "¡BUEN RITMO!", {
-      fontFamily: "PixelFont",
-      fontSize: 24,
-      color: "#fff300",
-      stroke: "#000000",
-      strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(120);
+    // ============================
+    // 🟥 VERSUS → CURA VIDA INDIVIDUAL
+    // ============================
+    else {
+        const playerState = this.player.id === 1 ? GameState.player1 : GameState.player2;
+
+        if (playerState.lives < 3) {
+            playerState.lives++;
+            events.emit("update-life", {
+                playerID: this.player.id,
+                vidas: playerState.lives
+            });
+        }
+    }
+
+    // ============================
+    // ✨ FEEDBACK DE ÉXITO
+    // ============================
+    const text = this.scene.add.text(
+        this.player.x,
+        this.player.y - 60,
+        "¡BUEN RITMO!",
+        {
+            fontFamily: "PixelFont",
+            fontSize: 24,
+            color: "#fff300",
+            stroke: "#000000",
+            strokeThickness: 4,
+        }
+    ).setOrigin(0.5).setDepth(120);
 
     this.scene.tweens.add({
-      targets: text,
-      y: text.y - 40,
-      alpha: 0,
-      duration: 1000,
-      ease: "Sine.easeInOut",
-      onComplete: () => text.destroy(),
+        targets: text,
+        y: text.y - 40,
+        alpha: 0,
+        duration: 1000,
+        ease: "Sine.easeInOut",
+        onComplete: () => text.destroy(),
     });
 
-    // Liberar movimiento y limpiar
+    // ============================
+    // 🔓 LIBERAR MOVIMIENTO + LIMPIEZA
+    // ============================
     this.scene.time.delayedCall(1200, () => {
-      this.player.canMove = true;
-      this.active = false;
-      this.comboLength = Math.min(6, this.comboLength + 1);
-      this.cleanupInputHandlers();
-      this.currentArrow = null;
-      this.dpadCooldown = false;
+        this.player.canMove = true;
+        this.active = false;
+        this.comboLength = Math.min(6, this.comboLength + 1);
+        this.cleanupInputHandlers();
+        this.currentArrow = null;
+        this.dpadCooldown = false;
     });
-  }
+}
+
 
   fail(arrow) {
     arrow.setTint(0xff0000);
