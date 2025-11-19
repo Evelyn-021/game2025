@@ -9,62 +9,68 @@ export default class DamageSystem {
   }
 
    applyDamage(player, playerID) {
-    const key = playerID === 1 ? "player1" : "player2";
-    const state = GameState[key];
 
-    // 🚫 Si está invulnerable, no recibe daño
+  // ==========================================
+  // 🟦 COOPERATIVO → vidas compartidas
+  // ==========================================
+  if (GameState.mode === "coop") {
     if (player.invulnerable) return;
 
-    // 💥 Quita UNA vida (¡solo una vez!)
-    state.lives--;
-    events.emit("update-life", { playerID, vidas: state.lives });
+    // restar 1 vida del pool compartido
+    GameState.sharedLives--;
 
-    console.log("🔥 VIDAS DEL PLAYER", playerID, "=", state.lives);
+    // actualizar HUD
+    events.emit("update-life", { playerID, vidas: GameState.sharedLives });
 
-    // ⭐ DISPARAR COMBO CUANDO BAJA DE 3 VIDAS
-    //    (ej: de 3 → 2, solo la primera vez)
-    if ((GameState.mode === "coop" || GameState.mode === "versus") && state.lives === 2) {
-      console.log(`🎯 Activando combo para jugador ${playerID}`);
-
-      if (playerID === 1 && this.scene.combo1) {
-        this.scene.combo1.start();
-      } else if (playerID === 2 && this.scene.combo2) {
-        this.scene.combo2.start();
-      }
+    // si llegó a 0 → muerte total
+    if (GameState.sharedLives <= 0) {
+      events.emit("player-dead", { player, playerID });
+      return;
     }
 
-    // 🔊 Sonido de daño
-    const audio = ServiceLocator.get("audio");
-    if (audio) audio.play("daño", { volume: 0.6 });
+    // Invulnerabilidad temporal
+    player.invulnerable = true;
+    player.setTint(0xffaaaa);
 
-    // 🔴 Efecto visual del golpe
-    player.setTint(0xff0000);
-    this.scene.tweens.add({
-      targets: player,
-      alpha: 0.5,
-      duration: 100,
-      yoyo: true,
-      repeat: 2,
-      onComplete: () => {
-        player.clearTint();
-        player.alpha = 1;
-      },
+    this.scene.time.delayedCall(800, () => {
+      player.clearTint();
+      player.invulnerable = false;
     });
 
-    // 🧱 Empuje leve hacia atrás (knockback)
-    const dir = Phaser.Math.Between(0, 1) ? 1 : -1;
-    player.body.velocity.x = 100 * dir;
-    player.body.velocity.y = -150;
+    return;
+  }
 
-    // 🕒 Invulnerabilidad temporal
-    player.invulnerable = true;
-    this.scene.time.delayedCall(1000, () => (player.invulnerable = false));
 
-    // 💀 Si se quedó sin vidas, emitir evento de muerte
-    if (state.lives <= 0) {
-      events.emit("player-dead", { player, playerID });
-    }
+  // ==========================================
+  // 🟥 VERSUS → lógica individual de siempre
+  // ==========================================
+  const key = playerID === 1 ? "player1" : "player2";
+  const state = GameState[key];
+
+  if (player.invulnerable) return;
+
+  // bajar una vida individual
+  state.lives--;
+
+  // HUD
+  events.emit("update-life", { playerID, vidas: state.lives });
+
+  // si llegó a 0 → muerte
+  if (state.lives <= 0) {
+    events.emit("player-dead", { player, playerID });
+    return;
+  }
+
+  // Invulnerabilidad
+  player.invulnerable = true;
+  player.setTint(0xffaaaa);
+
+  this.scene.time.delayedCall(800, () => {
+    player.clearTint();
+    player.invulnerable = false;
+  });
 }
+
 
 
   // =====================================================

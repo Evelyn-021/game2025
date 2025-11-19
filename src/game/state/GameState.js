@@ -1,26 +1,30 @@
 export const GameState = {
-  mode: "coop", // o 'versus'
+  mode: "coop", // "coop" o "versus"
+
+  // ❤️ Vidas compartidas en COOP
+  sharedLives: 6,
 
   player1: {
     character: null,
     donasRecolectadas: 0,
-    lives: 3,
-    stats: {
-      damageDealt: 0,
-      enemiesDefeated: 0
-    }
-  },
-  player2: {
-    character: null,
-    donasRecolectadas: 0,
-    lives: 3,
+    lives: 3, // solo usado en VERSUS
     stats: {
       damageDealt: 0,
       enemiesDefeated: 0
     }
   },
 
-  // Propiedades para el timer
+  player2: {
+    character: null,
+    donasRecolectadas: 0,
+    lives: 3, // solo usado en VERSUS
+    stats: {
+      damageDealt: 0,
+      enemiesDefeated: 0
+    }
+  },
+
+  // Propiedades del timer
   gameStartTime: null,
   timerActive: false,
 
@@ -31,12 +35,15 @@ export const GameState = {
       lives: 3,
       stats: { damageDealt: 0, enemiesDefeated: 0 }
     };
+
     this.player2 = { 
       character: null, 
       donasRecolectadas: 0, 
       lives: 3,
       stats: { damageDealt: 0, enemiesDefeated: 0 }
     };
+
+    this.sharedLives = 6; // ❤️ Reinicia vidas compartidas
     this.mode = "coop";
     this.gameStartTime = null;
     this.timerActive = false;
@@ -49,16 +56,27 @@ export const GameState = {
     };
   },
 
-  // ❤️ MÉTODO DE CURACIÓN
+  // ❤️ Curación (solo útil en VERSUS)
   healPlayer(playerID) {
     const player = playerID === 1 ? this.player1 : this.player2;
     if (player.lives < 3) player.lives += 1;
     return player.lives;
   },
 
-  // ⏰ MÉTODOS DE TIMER
+  // COOP: reduce vida del pool compartido
+  damageShared() {
+    if (this.sharedLives > 0) this.sharedLives--;
+    return this.sharedLives;
+  },
+
+  // COOP: curación compartida (si necesitás)
+  healShared() {
+    if (this.sharedLives < 6) this.sharedLives++;
+    return this.sharedLives;
+  },
+
+  // Timer
   startGameTimer() {
-    console.log("⏰ Iniciando timer del juego");
     this.gameStartTime = Date.now();
     this.timerActive = true;
   },
@@ -69,33 +87,18 @@ export const GameState = {
   },
 
   stopGameTimer() {
-    console.log("⏰ Deteniendo timer del juego");
     this.timerActive = false;
   },
 
-  // 📊 MÉTODOS PARA ESTADÍSTICAS COOP
+  // Estadísticas
   registerAttack(playerId, damage, enemyType) {
     const playerKey = `player${playerId}`;
-    if (!this[playerKey].stats) {
-      this[playerKey].stats = {
-        damageDealt: 0,
-        enemiesDefeated: 0
-      };
-    }
     this[playerKey].stats.damageDealt += damage;
-    console.log(`📊 Jugador ${playerId} hizo ${damage} de daño a ${enemyType}`);
   },
 
   registerEnemyDefeat(playerId, enemyType) {
     const playerKey = `player${playerId}`;
-    if (!this[playerKey].stats) {
-      this[playerKey].stats = {
-        damageDealt: 0,
-        enemiesDefeated: 0
-      };
-    }
     this[playerKey].stats.enemiesDefeated++;
-    console.log(`🏆 Jugador ${playerId} derrotó a ${enemyType}`);
   },
 
   getPlayerStats(playerId) {

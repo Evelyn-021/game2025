@@ -277,14 +277,6 @@ export class Game extends Scene {
     GameState.player1.donasRecolectadas = 0;
     GameState.player2.donasRecolectadas = 0;
 
-    this.add.text(this.scale.width / 2, 40, "MODO VERSUS", {
-      fontFamily: "Arial Black",
-      fontSize: 32,
-      color: "#ff66cc",
-      stroke: "#000",
-      strokeThickness: 6,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
-
     this.physics.add.collider(this.player1, this.player2, () => {
       const diff = this.player1.x - this.player2.x;
       if (diff > 0) {
@@ -304,13 +296,7 @@ export class Game extends Scene {
   // MODO COOP
   // =============================================================
   initCoop() {
-    this.add.text(this.scale.width / 2, 40, "MODO COOPERATIVO", {
-      fontFamily: "Arial Black",
-      fontSize: 32,
-      color: "#66ff66",
-      stroke: "#000",
-      strokeThickness: 6,
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
+    
   }
 
  // =============================================================
@@ -552,60 +538,99 @@ update() {
   }
 
   // =============================================================
-  // MUERTE Y RESPAWN - CORREGIDO (problema de caída)
-  // =============================================================
-  playerDied(player, id) {
-  const key = id === 1 ? "player1" : "player2";
-  const st = GameState[key];
+// MUERTE Y RESPAWN - CORREGIDO PARA COOP (vidas compartidas)
+// =============================================================
+playerDied(player, id) {
   if (!player.active || player.invulnerable) return;
 
-  console.log(`💀 playerDied - Jugador ${id}:`);
+  console.log(`💀 playerDied - Jugador ${id}`);
 
-  // 🧡 TODAVÍA LE QUEDAN VIDAS → usar DamageSystem
-if (st.lives > 1) {
+  // BLOQUEO INMEDIATO PARA QUE NO SE REPITA
+  player.invulnerable = true;      
+  player.body.enable = false;      
+  player.setVisible(false);        
 
-  // ✔️ Ahora usamos DamageSystem, que:
-  // - resta vida
-  // - emite update-life
-  // - dispara el combo cuando vidas == 2
-  // - maneja tint, invulnerabilidad, knockback, etc.
-  ServiceLocator.get("damage").applyDamage(player, id);
+  // =====================================
+  // 🟦 COOPERATIVO → vidas compartidas
+  // =====================================
+  if (GameState.mode === "coop") {
+    GameState.sharedLives--;
 
-  // ✔️ Después del daño, hacemos respawn igual que antes:
-  const spawn = id === 1 ? this.spawn1 : this.spawn2;
+    events.emit("update-life", { playerID: id, vidas: GameState.sharedLives });
 
-  player.setVisible(false);
-  player.body.enable = false;
+    // 🔥 Sin vidas → game over
+    if (GameState.sharedLives <= 0) {
+      this.handlePlayerDeath(player, id);
+      return;
+    }
 
-  this.time.delayedCall(100, () => {
-    player.setVisible(true);
-    player.body.enable = true;
-    player.body.allowGravity = true;
-    player.body.checkCollision.none = false;
+    // ===== Respawn =====
+    const spawn = id === 1 ? this.spawn1 : this.spawn2;
 
-    player.setPosition(spawn.x, spawn.y);
-    player.setVelocity(0, 0);
-    player.y += 1;
+    this.time.delayedCall(150, () => {
+      player.setPosition(spawn.x, spawn.y);
+      player.setVelocity(0, 0);
 
-    this.tweens.add({
-      targets: player,
-      alpha: 0.3,
-      duration: 120,
-      repeat: 8,
-      yoyo: true,
-      onComplete: () => {
-        player.alpha = 1;
-        player.invulnerable = false;
-      }
+      player.body.enable = true;
+      player.setVisible(true);
+
+      // parpadeo + restaurar invulnerabilidad
+      this.tweens.add({
+        targets: player,
+        alpha: 0.3,
+        duration: 120,
+        repeat: 8,
+        yoyo: true,
+        onComplete: () => {
+          player.alpha = 1;
+          player.invulnerable = false;
+        }
+      });
+
+      this.audioManager.play("respawn");
     });
 
-    this.audioManager.play("respawn");
-  });
+    return;
+  }
 
-  return;
-}
 
-  // 🖤 Sin vidas → muerte
+  // ============================================================
+  // 🟥 VERSUS → lógica tradicional (vidas individuales)
+  // ============================================================
+  if (st.lives > 1) {
+    // usa DamageSystem (knockback, tint, HUD update, etc.)
+    ServiceLocator.get("damage").applyDamage(player, id);
+
+    const spawn = id === 1 ? this.spawn1 : this.spawn2;
+
+    player.setVisible(false);
+    player.body.enable = false;
+
+    this.time.delayedCall(100, () => {
+      player.setVisible(true);
+      player.body.enable = true;
+      player.setPosition(spawn.x, spawn.y);
+      player.setVelocity(0, 0);
+
+      this.tweens.add({
+        targets: player,
+        alpha: 0.3,
+        duration: 120,
+        repeat: 8,
+        yoyo: true,
+        onComplete: () => {
+          player.alpha = 1;
+          player.invulnerable = false;
+        }
+      });
+
+      this.audioManager.play("respawn");
+    });
+
+    return;
+  }
+
+  // 🖤 Sin vidas individuales → muerte
   st.lives = 0;
   this.handlePlayerDeath(player, id);
 }
