@@ -229,20 +229,28 @@ checkPlayerHit(player) {
   }
 
   die() {
+
+    // 🔥 DESACTIVAR SOLO EL CUERPO (NO EL SPRITE)
+    this.body.enable = false;
+    this.setVelocity(0, 0);
+
     const deathAnim = `${this.tipo}_death`;
     if (this.scene.anims.exists(deathAnim)) {
-      this.play(deathAnim, true);
-      this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.hideForRespawn();
-      });
+        this.play(deathAnim, true);
+
+        this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+            this.hideForRespawn(); // recién acá apagamos todo
+        });
+
     } else {
-      this.hideForRespawn();
+        this.hideForRespawn();
     }
 
     if (this.audioManager) {
-      this.audioManager.play("bitemonster", { volume: 0.6 });
+        this.audioManager.play("bitemonster", { volume: 0.6 });
     }
-  }
+}
+
 
   hideForRespawn() {
     this.setActive(false);
