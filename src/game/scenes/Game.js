@@ -784,66 +784,45 @@ if (GameState.mode === "coop") {
 // =============================================================
 checkPlayerAttack({ player, x, y, range, width, direction, id }) {
 
-  const attackX = x + direction * range; 
-  const attackY = y;
+  // 🔥 Usa el attackRange REAL del player
+  const realRange = range; // 40px (según Player.js)
+  const attackX = x + direction * realRange;
 
+  // 🎯 HITBOX PRECISA (solo torso adelante del jugador)
+  const hitbox = new Phaser.Geom.Rectangle(
+    attackX - realRange / 2,
+    y - player.height * 0.4,     // más chico verticalmente
+    realRange,
+    player.height * 0.8
+  );
+
+  // =============================================================
+  // ATAQUE A ENEMIGOS (COOP)
+  // =============================================================
   this.enemies.forEach(enemy => {
     if (!enemy.active) return;
 
-    // Rectángulo de golpe del jugador
-    const hit = new Phaser.Geom.Rectangle(
-      attackX - width / 2,
-      attackY - enemy.height / 2,
-      width,
-      enemy.height
-    );
-
-    // Si el enemigo toca ese rectángulo → recibe daño
-    if (Phaser.Geom.Intersects.RectangleToRectangle(enemy.getBounds(), hit)) {
-
-      console.log(`🗡 Enemigo golpeado por Player ${id}`);
-
-      // Aplicar daño con tu sistema de daño
-      ServiceLocator.get("damage").applyDamageToEnemy(enemy, player);
-
-      // Efecto visual
+    if (Phaser.Geom.Intersects.RectangleToRectangle(enemy.getBounds(), hitbox)) {
+      ServiceLocator.get("damage").applyDamageToEnemy(enemy, player.id);
       enemy.setTint(0xffaaaa);
       this.time.delayedCall(150, () => enemy.clearTint());
     }
   });
 
-// =============================================================
-// ATAQUE ENTRE JUGADORES (VERSUS)
-// =============================================================
-if (GameState.mode === "versus") {
+  // =============================================================
+  // ATAQUE ENTRE JUGADORES (VERSUS)
+  // =============================================================
+  if (GameState.mode === "versus") {
+    const target = (id === 1) ? this.player2 : this.player1;
 
-  const attacker = player;
-  const target = (id === 1) ? this.player2 : this.player1;
+    if (target.active && !target.invulnerable) {
+      if (Phaser.Geom.Intersects.RectangleToRectangle(target.getBounds(), hitbox)) {
+        ServiceLocator.get("damage").applyDamage(target, target.id);
 
-  // 🔒 Si el target está muerto o invulnerable, no se golpea
-  if (!target.active || target.invulnerable) return;
-
-  // 📦 Hitbox del ataque
-  const hitbox = new Phaser.Geom.Rectangle(
-    attackX - width / 2,
-    attackY - attacker.height / 2,
-    width,
-    attacker.height
-  );
-
-  // 🥊 Si el jugador enemigo está dentro del hitbox → daño
-  if (Phaser.Geom.Intersects.RectangleToRectangle(target.getBounds(), hitbox)) {
-    console.log(`🗡 Player ${id} golpeó a Player ${target.id}`);
-
-    // ⭐ Aplicar daño al jugador golpeado
-    ServiceLocator.get("damage").applyDamage(target, target.id);
-
-    // 💥 Efecto visual del golpe
-    target.setTint(0xffaaaa);
-    this.time.delayedCall(150, () => target.clearTint());
+        target.setTint(0xffaaaa);
+        this.time.delayedCall(150, () => target.clearTint());
+      }
+    }
   }
-
-
 }
-
-}  }
+}

@@ -29,8 +29,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.currentAttackType = "attack1";
 
     // === HITBOX DE ATAQUE ===
-    this.attackRange = 40;       // distancia para golpear
-    this.attackWidth = 60;       // ancho del golpe
+    this.attackRange = 20;       // distancia para golpear
+    this.attackWidth = 40;       // ancho del golpe
     this.facingRight = true;     // dirección actual
 
     // === ANIMACIONES ===
