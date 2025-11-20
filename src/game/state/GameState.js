@@ -4,6 +4,9 @@ export const GameState = {
   // ❤️ Vidas compartidas en COOP
   sharedLives: 6,
 
+  // ⭐ NUEVO: meta inicial de donas
+  metaDonas: 30,
+
   player1: {
     character: null,
     donasRecolectadas: 0,
@@ -43,10 +46,13 @@ export const GameState = {
       stats: { damageDealt: 0, enemiesDefeated: 0 }
     };
 
-    this.sharedLives = 6; // ❤️ Reinicia vidas compartidas
+    this.sharedLives = 6;
     this.mode = "coop";
     this.gameStartTime = null;
     this.timerActive = false;
+
+    // ⭐ NUEVO: resetear meta de donas
+    this.metaDonas = 30;
   },
 
   getCharacters() {
@@ -69,7 +75,7 @@ export const GameState = {
     return this.sharedLives;
   },
 
-  // COOP: curación compartida (si necesitás)
+  // COOP: curación compartida
   healShared() {
     if (this.sharedLives < 6) this.sharedLives++;
     return this.sharedLives;

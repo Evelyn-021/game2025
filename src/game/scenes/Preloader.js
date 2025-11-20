@@ -25,7 +25,8 @@ export class Preloader extends Scene {
     // === MENU ===
     this.load.image('logo', 'assets/image/menu/logo.png');
     this.load.image('background', 'assets/image/menu/background.png');
-
+    this.load.image ('donagrande', 'assets/image/menu/donagrande.png');
+    this.load.image("galletagrande", "assets/image/menu/galletagrande.png");
     // === TILEMAP ===
     this.load.image('wip4', 'assets/tilemap/wip4.png');          // Tileset llamado suelo
     this.load.image("wip5", "assets/tilemap/wip5.png");

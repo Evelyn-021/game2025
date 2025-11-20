@@ -206,18 +206,56 @@ export class Game extends Scene {
     // FIN DE TIEMPO
     // =====================================================
     events.on("time-up", () => {
-      const p1 = GameState.player1.donasRecolectadas || 0;
-      const p2 = GameState.player2.donasRecolectadas || 0;
-      const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
-      this.scene.stop("HUDScene");
+  const p1 = GameState.player1.donasRecolectadas || 0;
+  const p2 = GameState.player2.donasRecolectadas || 0;
+  const teamScore = p1 + p2;
+  const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
+
+  this.scene.stop("HUDScene");
+
+  // =====================================================
+  // 🟣 MODO COOP — META DINÁMICA
+  // =====================================================
+  if (GameState.mode === "coop") {
+
+    const meta = GameState.metaDonas;
+
+    if (teamScore >= meta) {
+      // ⭐ Alcanzaron la meta → Victoria inmediata
+      this.scene.start("VictoryScene", {
+        winner: "TEAM",
+        p1,
+        p2,
+        tiempo,
+      });
+
+      // ⭐ Aumentar la meta para la próxima ronda
+      GameState.metaDonas += 30;
       
-      if (p1 === p2) {
-        this.scene.start("EmpateScene", { p1, p2, tiempo });
-      } else {
-        const winner = p1 > p2 ? "Jugador 1" : "Jugador 2";
-        this.scene.start("VictoryScene", { winner, p1, p2, tiempo });
-      }
-    });
+    } else {
+      // ❌ No alcanzaron la meta → Derrota
+      this.scene.start("GameOver", {
+        winner: "TEAM",
+        p1,
+        p2,
+        tiempo,
+        motivo: "no alcanzaron la meta",
+      });
+    }
+
+    return;
+  }
+
+  // =====================================================
+  // 🟥 MODO VERSUS (igual que siempre)
+  // =====================================================
+  if (p1 === p2) {
+    this.scene.start("EmpateScene", { p1, p2, tiempo });
+  } else {
+    const winner = p1 > p2 ? "Jugador 1" : "Jugador 2";
+    this.scene.start("VictoryScene", { winner, p1, p2, tiempo });
+  }
+});
 
     // =====================================================
     // LIMPIEZA
@@ -293,8 +331,7 @@ export class Game extends Scene {
 
   console.log(`🎯 Total de tiles WRAP: ${this.wrapTiles.length}`);
 
-// 🎨 DEBUG - Visualizar tiles WRAP (comenta/descomenta esta línea)
-    this.debugWrapTiles();
+
     // ===== OBJETOS =====
     this.objetosMapa = map.getObjectLayer("objetos")?.objects || [];
     this.spawn1 = this.objetosMapa.find((o) => o.name === "player") || { x: 200, y: 200 };
@@ -490,19 +527,37 @@ addClimbLogic(player, playerKey) {
 applyScreenWrap(player) {
     const w = this.physics.world.bounds;
 
-    // Si se sale por la izquierda → aparece a la derecha
+    // --- GHOST TRAIL — función lista para usar ---
+    const makeGhost = () => {
+        const ghost = this.add.sprite(player.x, player.y, player.texture.key)
+            .setFrame(player.frame.name)   // ✨ mantiene el frame actual
+            .setAlpha(0.6)
+            .setDepth(999);
+
+        this.tweens.add({
+            targets: ghost,
+            alpha: 0,
+            duration: 150,
+            onComplete: () => ghost.destroy()
+        });
+    };
+
+    // Cruza por la izquierda → aparece derecha
     if (player.x < w.left) {
+        makeGhost();                     // 👻 sombra antes del warp
         player.x = w.right - 2;
+        makeGhost();                     // 👻 sombra después del warp
         return;
     }
 
-    // Si se sale por la derecha → aparece a la izquierda
+    // Cruza por la derecha → aparece izquierda
     if (player.x > w.right) {
+        makeGhost();                     // 👻 sombra antes del warp
         player.x = w.left + 2;
+        makeGhost();                     // 👻 sombra después del warp
         return;
     }
 }
-
 
 
 
@@ -924,40 +979,6 @@ checkPlayerAttack({ player, x, y, range, width, direction, id }) {
     }
   }
 }
-
-
-// En tu clase Game, agrega este método (puede ir al final de la clase)
-debugWrapTiles() {
-    if (this.wrapTiles.length === 0) {
-        console.log("⚠️ No hay tiles WRAP para debug");
-        return;
-    }
-    
-    this.wrapTiles.forEach(tile => {
-        // Dibujar rectángulo verde alrededor del tile WRAP
-        const graphics = this.add.graphics();
-        graphics.lineStyle(2, 0x00ff00, 0.8);
-        graphics.strokeRect(tile.pixelX, tile.pixelY, tile.width, tile.height);
-        
-        // Texto de debug
-        const text = this.add.text(tile.pixelX + tile.width/2, tile.pixelY + tile.height/2, 'WRAP', {
-            fontSize: '8px',
-            color: '#00ff00',
-            backgroundColor: '#000000',
-            padding: { x: 2, y: 1 }
-        });
-        text.setOrigin(0.5);
-        text.setDepth(1000); // Para que esté por encima de todo
-        
-        console.log(`🎨 Debug tile WRAP dibujado en: (${tile.pixelX}, ${tile.pixelY})`);
-    });
-    
-    console.log(`🎨 Se dibujaron ${this.wrapTiles.length} tiles WRAP en verde`);
-}
-
-
-
-
 
 
 }

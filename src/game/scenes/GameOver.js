@@ -18,9 +18,11 @@ export class GameOver extends Scene {
 
     this.cameras.main.setBackgroundColor("#1a1a2e");
 
-    const { winner, p1 = 0, p2 = 0, tiempo = 0, motivo } = this.dataFin;
+    const { winner, p1 = 0, p2 = 0, tiempo = 0 } = this.dataFin;
 
-    // === SISTEMA DE ENTRADA ===
+    // =====================================================
+    // SISTEMA DE ENTRADA
+    // =====================================================
     this.inputSystem = new InputSystem(this.input);
 
     this.inputSystem.configureKeyboardByString({
@@ -32,12 +34,14 @@ export class GameOver extends Scene {
       [INPUT_ACTIONS.WEST]: ["ENTER"]
     });
 
-    // === FONDO FULL ===
-    this.add
-      .rectangle(W / 2, H / 2, W, H, 0x2d1b69)
-      .setAlpha(0.85);
+    // =====================================================
+    // FONDO
+    // =====================================================
+    this.add.rectangle(W / 2, H / 2, W, H, 0x2d1b69).setAlpha(0.85);
 
-    // === TÍTULO ===
+    // =====================================================
+    // TÍTULO
+    // =====================================================
     this.add.text(W / 2, H * 0.10, "GAME OVER", {
       fontFamily: '"Press Start 2P"',
       fontSize: "48px",
@@ -46,27 +50,35 @@ export class GameOver extends Scene {
       strokeThickness: 6,
     }).setOrigin(0.5);
 
-    // === GANADOR ===
-    this.add.text(W / 2, H * 0.19, `${winner.toUpperCase()} WINS!`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "22px",
-      color: "#ffff00",
-      stroke: "#000",
-      strokeThickness: 4,
-    }).setOrigin(0.5);
+    // =====================================================
+    // MENSAJE SEGÚN MODO
+    // =====================================================
 
-    if (motivo === "sin vidas") {
-      this.add.text(W / 2, H * 0.24, "OUT OF LIVES!", {
+    if (GameState.mode === "versus") {
+      this.add.text(W / 2, H * 0.19, `${winner.toUpperCase()} WINS!`, {
         fontFamily: '"Press Start 2P"',
-        fontSize: "18px",
-        color: "#ff6666",
+        fontSize: "22px",
+        color: "#ffff00",
         stroke: "#000",
-        strokeThickness: 3,
+        strokeThickness: 4,
       }).setOrigin(0.5);
     }
 
-    // === PUNTAJE ===
-    this.add.rectangle(W / 2, H * 0.40, W * 0.60, 120, 0x000000, 0.55)
+    if (GameState.mode === "coop") {
+      this.add.text(W / 2, H * 0.19, "AMBOS JUGADORES PERDIERON", {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "22px",
+        color: "#ff6666",
+        stroke: "#000",
+        strokeThickness: 4,
+      }).setOrigin(0.5);
+    }
+
+    // =====================================================
+    // PANEL — FINAL SCORE
+    // =====================================================
+
+    this.add.rectangle(W / 2, H * 0.40, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0x00ffff);
 
     this.add.text(W / 2, H * 0.355, "FINAL SCORE", {
@@ -77,51 +89,93 @@ export class GameOver extends Scene {
       strokeThickness: 3,
     }).setOrigin(0.5);
 
-    this.add.text(W * 0.33, H * 0.40, `P1: ${p1} DONUTS`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "16px",
-      color: "#ff66cc",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+    // =====================================================
+    // COOP — TEAM SCORE
+    // =====================================================
+    if (GameState.mode === "coop") {
 
-    this.add.text(W * 0.67, H * 0.40, `P2: ${p2} DONUTS`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "16px",
-      color: "#66ccff",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+      const teamScore = p1 + p2;
 
-    this.add.text(W / 2, H * 0.435, `TIME: ${tiempo}s`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "14px",
-      color: "#ffff88",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+      // TEAM SCORE
+      this.add.text(W / 2, H * 0.40, `TEAM SCORE: ${teamScore} DONUTS`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "16px",
+        color: "#ff66cc",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
 
-    // === RECORD ===
-    const best = JSON.parse(localStorage.getItem("bestRecord")) || {
-      winner: "NOBODY",
-      donas: 0
-    };
-    const ganadorDonas = winner === "Jugador 1" ? p1 : p2;
+      // BEST TEAM SCORE (seguro)
+      let best = localStorage.getItem("bestTeamScore");
+      best = best ? JSON.parse(best) : { donas: 0 };
 
-    if (ganadorDonas > best.donas) {
-      localStorage.setItem("bestRecord", JSON.stringify({ winner, donas: ganadorDonas }));
+      if (teamScore > best.donas) {
+        best = { donas: teamScore };
+        localStorage.setItem("bestTeamScore", JSON.stringify(best));
+      }
+
+      this.add.text(W / 2, H * 0.435, `BEST TEAM SCORE: ${best.donas} DONUTS`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "14px",
+        color: "#ffaa00",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+
+    } else {
+
+      // =====================================================
+      // VERSUS — SCORE INDIVIDUAL
+      // =====================================================
+
+      this.add.text(W * 0.33, H * 0.40, `P1: ${p1} DONUTS`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "16px",
+        color: "#ff66cc",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+
+      this.add.text(W * 0.67, H * 0.40, `P2: ${p2} DONUTS`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "16px",
+        color: "#66ccff",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+
+      this.add.text(W / 2, H * 0.435, `TIME: ${tiempo}s`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "14px",
+        color: "#ffff88",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+
+      // BEST RECORD VERSUS
+      let best = localStorage.getItem("bestRecord");
+      best = best ? JSON.parse(best) : { winner: "NOBODY", donas: 0 };
+
+      const ganadorDonas = winner === "Jugador 1" ? p1 : p2;
+
+      if (ganadorDonas > best.donas) {
+        best = { winner, donas: ganadorDonas };
+        localStorage.setItem("bestRecord", JSON.stringify(best));
+      }
+
+      this.add.text(W / 2, H * 0.50, `BEST: ${best.winner} - ${best.donas} DONUTS`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "14px",
+        color: "#ffaa00",
+        stroke: "#000",
+        strokeThickness: 2,
+      }).setOrigin(0.5);
     }
-    const updated = JSON.parse(localStorage.getItem("bestRecord"));
 
-    this.add.text(W / 2, H * 0.50, `BEST: ${updated.winner} - ${updated.donas} DONUTS`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "14px",
-      color: "#ffaa00",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+    // =====================================================
+    // CONTINUAR
+    // =====================================================
 
-    // === CONTINUE ===
     this.add.rectangle(W / 2, H * 0.68, 400, 150, 0x000000, 0.65)
       .setStrokeStyle(3, 0x00ff00);
 
@@ -133,7 +187,10 @@ export class GameOver extends Scene {
       strokeThickness: 3,
     }).setOrigin(0.5);
 
-    // === BOTONES ===
+    // =====================================================
+    // BOTONES
+    // =====================================================
+
     this.revanchaButton = this.add.text(W / 2, H * 0.68, "REVANCHA", {
       fontFamily: '"Press Start 2P"',
       fontSize: "24px",
@@ -154,17 +211,16 @@ export class GameOver extends Scene {
     this.selectedIndex = 0;
     this.updateSelection();
 
-    // Click
     this.revanchaButton.on("pointerdown", () => this.selectRevancha());
     this.menuButton.on("pointerdown", () => this.selectMenu());
   }
 
+  // =====================================================
+  // INPUT
+  // =====================================================
   update() {
-
-    // === ACTUALIZAR INPUTSYSTEM ===
     this.inputSystem.update();
 
-    // === TECLAS Y JOYSTICK (UP/DOWN) ===
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.UP)) {
       this.selectedIndex = Math.max(0, this.selectedIndex - 1);
       this.updateSelection();
@@ -175,7 +231,6 @@ export class GameOver extends Scene {
       this.updateSelection();
     }
 
-    // === CONFIRMAR CON CUALQUIER BOTÓN DEL JOYSTICK ===
     if (
       this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH) ||
       this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH) ||
@@ -186,8 +241,10 @@ export class GameOver extends Scene {
     }
   }
 
+  // =====================================================
+  // SELECCIÓN DE BOTONES
+  // =====================================================
   updateSelection() {
-
     this.buttons.forEach((btn, index) => {
       this.tweens.killTweensOf(btn);
 
@@ -204,9 +261,7 @@ export class GameOver extends Scene {
           repeat: -1
         });
       } else {
-        btn.setScale(1)
-          .setStroke("#000", 3);
-
+        btn.setScale(1).setStroke("#000", 3);
         btn.setColor(index === 0 ? "#ff33ff" : "#3366ff");
       }
     });
@@ -217,12 +272,20 @@ export class GameOver extends Scene {
     else this.selectMenu();
   }
 
+  // =====================================================
+  // ACCIONES DE BOTONES
+  // =====================================================
   selectRevancha() {
     this.scene.stop("HUDScene");
-    GameState.player1.lives = 3;
-    GameState.player2.lives = 3;
+
+    // Reset parcial
     GameState.player1.donasRecolectadas = 0;
     GameState.player2.donasRecolectadas = 0;
+
+    GameState.player1.lives = 3;
+    GameState.player2.lives = 3;
+    GameState.sharedLives = 6;
+
     this.scene.start("Game");
   }
 
