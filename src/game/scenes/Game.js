@@ -13,6 +13,10 @@ import Combo from "../../classes/combo.js";
 export class Game extends Scene {
   constructor() {
     super("Game");
+
+ this.wrapTiles = [];
+
+
   }
 
   create() {
@@ -69,11 +73,25 @@ export class Game extends Scene {
     // =====================================================
     this.setupWorld();
 
+    
     // =====================================================
-    // CONFIGURACIÓN DE FÍSICA
+    // CONFIGURACIÓN DE FÍSICA - PERMITIR SALIR DE LÍMITES PARA WRAP
     // =====================================================
     this.physics.world.gravity.y = 800;
-    this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels, true, true, true, false);
+    
+    // 🔄 IMPORTANTE: Permitir salir de los límites para el wrap
+    this.physics.world.setBounds(
+        0, 
+        0, 
+        this.map.widthInPixels, 
+        this.map.heightInPixels, 
+        false,  // ← NO colisionar con izquierda
+        false,  // ← NO colisionar con derecha  
+        true,   // ← SÍ colisionar con arriba
+        false   // ← NO colisionar con abajo (para caer)
+    );
+
+
 
     // =====================================================
     // CREAR JUGADORES
@@ -86,7 +104,9 @@ export class Game extends Scene {
     this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, 1);
     this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
 
-
+    // 🔄 INICIALIZAR PROPIEDAD DE WRAP
+    this.player1.isWrapping = false;
+    this.player2.isWrapping = false;
     // === COMBOS ===
     this.combo1 = new Combo(this, this.player1);
     this.combo2 = new Combo(this, this.player2);
@@ -242,6 +262,39 @@ export class Game extends Scene {
     this.escaleras = escaleras;
     this.fondoLayer = fondo;
 
+
+    // 🟪 Buscar tiles marcados como WRAP en Tiled - MEJORADO
+  this.wrapTiles = [];
+  this.plataformas.forEachTile(tile => {
+      if (tile && tile.index !== -1) {
+          // Verificar propiedades del tile
+          const properties = this.map.tilesets[0].tileProperties || {};
+          const tileProperties = properties[tile.index - 1] || {};
+          
+          if (tileProperties.wrap === true) {
+              this.wrapTiles.push({
+                  pixelX: tile.pixelX,
+                  pixelY: tile.pixelY,
+                  width: this.map.tileWidth,
+                  height: this.map.tileHeight,
+                  getBounds: function() {
+                      return new Phaser.Geom.Rectangle(
+                          this.pixelX, 
+                          this.pixelY, 
+                          this.width, 
+                          this.height
+                      );
+                  }
+              });
+              console.log(`📍 Tile WRAP encontrado en: (${tile.pixelX}, ${tile.pixelY})`);
+          }
+      }
+  });
+
+  console.log(`🎯 Total de tiles WRAP: ${this.wrapTiles.length}`);
+
+// 🎨 DEBUG - Visualizar tiles WRAP (comenta/descomenta esta línea)
+    this.debugWrapTiles();
     // ===== OBJETOS =====
     this.objetosMapa = map.getObjectLayer("objetos")?.objects || [];
     this.spawn1 = this.objetosMapa.find((o) => o.name === "player") || { x: 200, y: 200 };
@@ -306,6 +359,7 @@ if (GameState.mode === "versus") {
       this.scale.height * 0.40
     );
   }
+
 
   // =============================================================
   // MODO VERSUS
@@ -428,10 +482,43 @@ addClimbLogic(player, playerKey) {
     });
   }
 
+
+
+// =============================================================
+// WRAP SUAVE COMO DONUT DODO — SIN TILES, SIN MUERTE
+// =============================================================
+applyScreenWrap(player) {
+    const w = this.physics.world.bounds;
+
+    // Si se sale por la izquierda → aparece a la derecha
+    if (player.x < w.left) {
+        player.x = w.right - 2;
+        return;
+    }
+
+    // Si se sale por la derecha → aparece a la izquierda
+    if (player.x > w.right) {
+        player.x = w.left + 2;
+        return;
+    }
+}
+
+
+
+
   // =============================================================
 // LOOP DE UPDATE
 // =============================================================
 update() {
+
+ // ⭐ Wrap solo en plataformas especiales
+  this.applyScreenWrap(this.player1);
+  this.applyScreenWrap(this.player2);
+
+
+
+
+
   // =========================================================
   // MOVIMIENTO PLAYER 1
   // =========================================================
@@ -667,14 +754,26 @@ if (layer.isTower || layer.isYellowCloud || layer.isCandyBack) {
   this.bgStars.displayHeight = vh * 1.6;
   this.bgStars.tilePositionX += 0.4;
 
-    // CAÍDA DEL MUNDO
+    // CAÍDA DEL MUNDO - SOLO si no está en modo wrap
     const worldH = this.physics.world.bounds.height;
-    if (!this.player1.invulnerable && this.player1.y > worldH + 100)
-      this.playerDied(this.player1, 1);
-    if (!this.player2.invulnerable && this.player2.y > worldH + 100)
-      this.playerDied(this.player2, 2);
-  }
+    const wrapMargin = 200; // Margen más grande para permitir wrap
 
+  // 🚫 Bloquear muerte por caída si está realizando WRAP
+    const doingWrap = this.player1.isWrapping || this.player2.isWrapping;
+
+    // 🚫 Si está haciendo WRAP → jamás puede morir
+if (this.player1.isWrapping) return;
+if (this.player2.isWrapping) return;
+
+// 👉 muerte real por caída
+if (this.player1.y > worldH + wrapMargin && !this.player1.invulnerable) {
+    this.playerDied(this.player1, 1);
+}
+if (this.player2.y > worldH + wrapMargin && !this.player2.invulnerable) {
+    this.playerDied(this.player2, 2);
+}
+
+}
   // =============================================================
 // MUERTE Y RESPAWN - VERSUS / COOP 100% ARREGLADO
 // =============================================================
@@ -825,4 +924,40 @@ checkPlayerAttack({ player, x, y, range, width, direction, id }) {
     }
   }
 }
+
+
+// En tu clase Game, agrega este método (puede ir al final de la clase)
+debugWrapTiles() {
+    if (this.wrapTiles.length === 0) {
+        console.log("⚠️ No hay tiles WRAP para debug");
+        return;
+    }
+    
+    this.wrapTiles.forEach(tile => {
+        // Dibujar rectángulo verde alrededor del tile WRAP
+        const graphics = this.add.graphics();
+        graphics.lineStyle(2, 0x00ff00, 0.8);
+        graphics.strokeRect(tile.pixelX, tile.pixelY, tile.width, tile.height);
+        
+        // Texto de debug
+        const text = this.add.text(tile.pixelX + tile.width/2, tile.pixelY + tile.height/2, 'WRAP', {
+            fontSize: '8px',
+            color: '#00ff00',
+            backgroundColor: '#000000',
+            padding: { x: 2, y: 1 }
+        });
+        text.setOrigin(0.5);
+        text.setDepth(1000); // Para que esté por encima de todo
+        
+        console.log(`🎨 Debug tile WRAP dibujado en: (${tile.pixelX}, ${tile.pixelY})`);
+    });
+    
+    console.log(`🎨 Se dibujaron ${this.wrapTiles.length} tiles WRAP en verde`);
+}
+
+
+
+
+
+
 }
