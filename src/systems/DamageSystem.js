@@ -51,9 +51,11 @@ if (GameState.mode === "coop") {
     player.setTint(0xffaaaa);
 
     this.scene.time.delayedCall(800, () => {
-        player.clearTint();
-        player.invulnerable = false;
-    });
+    player.clearTint();
+    player.invulnerable = false;
+    player.resetState();   // ← 🔥 FIX DEFINITIVO
+});
+
 
     return;
 }

@@ -148,6 +148,19 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+    // ============================
+  // 🔄 RESETEAR ESTADOS DEL PLAYER
+  // ============================
+  resetState() {
+    this.isAttacking = false;
+    this.canMove = true;
+
+    if (this.body) {
+      this.body.enable = true;
+    }
+  }
+
+
   update() {
     if (!this.canMove) {
       this.stopMoving();

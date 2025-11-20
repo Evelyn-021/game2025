@@ -260,7 +260,7 @@ checkPlayerHit(player) {
     if (!this.scene) return;
     
     const spawnX = this.originalX + Phaser.Math.Between(-50, 50);
-    const spawnY = this.originalX - 100;
+    const spawnY = this.originalY - 50; // ← usar Y REAL
     
     this.setPosition(spawnX, spawnY);
     this.setActive(true);
