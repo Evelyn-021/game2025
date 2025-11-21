@@ -17,16 +17,92 @@ export class CharacterSelect extends Scene {
 
     this.currentPlayer = 1;
     this.selectedIndex = 0;
+ 
 
-    this.titleText = this.add
-      .text(W / 2, H * 0.12, "JUGADOR 1: ELIGE PERSONAJE", {
-        fontFamily: '"Press Start 2P", "Courier New", monospace',
-        fontSize: "24px",
-        color: "#ffffff",
-        stroke: "#000",
-        strokeThickness: 4
-      })
-      .setOrigin(0.5);
+
+// ===============================
+// DIRIGIBLES FLOTANDO
+// ===============================
+
+this.dir1 = this.add.image(W * 0.10, H * 0.25, "cake_valley_cupcake")
+  .setScale(1.8)
+  .setTint(0xffb6ff)
+  .setAlpha(1)
+  .setDepth(4);
+
+this.dir2 = this.add.image(W * 0.90, H * 0.60, "cake_valley_cupcake")
+  .setScale(1.4)
+  .setTint(0xffccff)
+  .setAlpha(0.9)
+  .setDepth(3);
+
+this.dir3 = this.add.image(W * 0.77, H * 0.10, "cake_valley_cupcake")
+  .setScale(2.2)
+  .setTint(0xe6aaff)
+  .setAlpha(0.5)
+  .setDepth(1);
+
+// ==== FLOTACIÓN SUAVE ====
+
+// Dirigible 1
+this.tweens.add({
+  targets: this.dir1,
+  y: this.dir1.y + 15,
+  duration: 2500,
+  yoyo: true,
+  repeat: -1,
+  ease: "Sine.easeInOut"
+});
+
+// Dirigible 2
+this.tweens.add({
+  targets: this.dir2,
+  y: this.dir2.y + 12,
+  duration: 3200,
+  yoyo: true,
+  repeat: -1,
+  ease: "Sine.easeInOut"
+});
+
+// Dirigible 3
+this.tweens.add({
+  targets: this.dir3,
+  y: this.dir3.y + 18,
+  duration: 4000,
+  yoyo: true,
+  repeat: -1,
+  ease: "Sine.easeInOut"
+});
+
+    //========
+    //TITULO 
+    //========
+    this.titleText = this.add.text(W / 2, H * 0.12, "JUGADOR 1: ELIGE PERSONAJE", {
+    fontFamily: '"Press Start 2P"',
+    fontSize: "32px",
+    color: "#ffb6ff",         // rosa pastel interno
+    stroke: "#ff00e6",        // borde rosa FUERTE (neón)
+    strokeThickness: 6,
+    shadow: {
+      offsetX: 0,
+      offsetY: 0,
+      color: "#ff66ff",       // halo de neon
+      blur: 45,               // clave para efecto glow
+      fill: true
+      }
+    })
+    .setOrigin(0.5)
+    .setDepth(10);
+    this.tweens.add({
+    targets: this.titleText,
+    scale: 1.04,
+    duration: 900,
+    yoyo: true,
+    repeat: -1,
+    ease: "Sine.easeInOut"
+  });
+
+
 
     // === Personajes más juntos y centrados ===
     const offsetX = W * 0.22; // ANTES 0.30 → más pegados
@@ -58,6 +134,8 @@ export class CharacterSelect extends Scene {
   }
 
   update() {
+
+    // INPUT
     this.inputSystem.update?.();
 
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT)) {
@@ -76,12 +154,29 @@ export class CharacterSelect extends Scene {
     }
   }
 
-  updateSelection() {
-    this.characters.forEach((sprite, i) => {
-      sprite.setTint(i === this.selectedIndex ? 0xffff99 : 0xffffff);
-      sprite.setScale(i === this.selectedIndex ? 1.3 : 1.1);
-    });
-  }
+ updateSelection() {
+  this.characters.forEach((sprite, i) => {
+
+    if (i === this.selectedIndex) {
+
+      // Tint especiales para cada personaje
+      if (i === 0) {
+        // Pinky → ROSA pastel
+        sprite.setTint(0xffb6ff);
+      } else {
+        // Lamb → CELESTE pastel
+        sprite.setTint(0xa7e8ff);
+      }
+
+      sprite.setScale(1.3);
+
+    } else {
+      sprite.setTint(0xffffff);
+      sprite.setScale(1.1);
+    }
+
+  });
+}
 
   selectCharacter(character) {
     if (this.currentPlayer === 1) {

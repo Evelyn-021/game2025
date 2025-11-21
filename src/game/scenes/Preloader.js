@@ -27,13 +27,18 @@ export class Preloader extends Scene {
     this.load.image('background', 'assets/image/menu/background.png');
     this.load.image ('donagrande', 'assets/image/menu/donagrande.png');
     this.load.image("galletagrande", "assets/image/menu/galletagrande.png");
+    this.load.image("background4", "assets/image/menu/background4.png");
+    this.load.image("nubemorada1", "assets/image/menu/nubemorada1.png");
+    this.load.image("nubemorada2", "assets/image/menu/nubemorada2.png");
+    
+    
     // === TILEMAP ===
     this.load.image('wip4', 'assets/tilemap/wip4.png');          // Tileset llamado suelo
     this.load.image("wip5", "assets/tilemap/wip5.png");
     this.load.image('escalera', 'assets/tilemap/escalera.png');   // Tileset de escaleras
     this.load.tilemapTiledJSON('map', 'assets/tilemap/map.json'); // Mapa con ambas capas
     this.load.tilemapTiledJSON("map2", "assets/tilemap/map2.json");
-
+    
     // === PARALLAX ===
 //
 // MODO COOPERATIVO  🌍 (Lila Land)
