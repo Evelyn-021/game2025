@@ -433,7 +433,7 @@ if (GameState.mode === "versus") {
 addClimbLogic(player, playerKey) {
   player.isClimbing = false;
 
-  // ✅ CONVERTIR el TilemapLayer a array de tiles
+  // Convertimos las escaleras en un array de tiles
   let escalerasTiles = [];
   this.escaleras.forEachTile(tile => {
     if (tile && tile.index !== -1) {
@@ -444,10 +444,20 @@ addClimbLogic(player, playerKey) {
   this.events.on("update", () => {
     if (!player || !player.body || !player.active) return;
 
-    // ✅ AHORA SÍ funciona porque escalerasTiles es un array
-    const onLadder = escalerasTiles.some(tile =>
-      Phaser.Geom.Intersects.RectangleToRectangle(player.getBounds(), tile.getBounds())
-    );
+    const playerBounds = player.getBounds();
+
+    // 🎯 SOLO detecta escalera si el jugador está centrado horizontalmente en ella
+    const onLadder = escalerasTiles.some(tile => {
+      const t = tile.getBounds();
+
+      const overlap = Phaser.Geom.Intersects.RectangleToRectangle(playerBounds, t);
+
+      // condición extra: jugador debe estar más o menos alineado
+      const aligned =
+        Math.abs(player.x - (t.x + t.width / 2)) < 14; // margen ajustable
+
+      return overlap && aligned;
+    });
 
     if (onLadder) {
       player.isClimbing = true;
@@ -456,14 +466,15 @@ addClimbLogic(player, playerKey) {
 
       const input = this.inputSystem;
       if (input.isPressed(INPUT_ACTIONS.UP, playerKey)) {
-        player.y -= 4; // Un poco más rápido
+        player.y -= 3;
       } else if (input.isPressed(INPUT_ACTIONS.DOWN, playerKey)) {
-        player.y += 4;
+        player.y += 3;
       }
-
-    } else if (player.isClimbing) {
-      player.isClimbing = false;
-      player.body.allowGravity = true;
+    } else {
+      if (player.isClimbing) {
+        player.isClimbing = false;
+        player.body.allowGravity = true;
+      }
     }
   });
 }
