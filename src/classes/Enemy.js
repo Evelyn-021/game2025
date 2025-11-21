@@ -8,6 +8,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     this.scene = scene;
+
+     // ⭐ Guardamos posición original para respawn
+    this.spawnX = x;
+    this.spawnY = y;
+
     this.tipo = tipo;
     this.playerTargets = Array.isArray(playerTargets) ? playerTargets : [];
     this.audioManager = audioManager;
@@ -266,23 +271,29 @@ checkPlayerHit(player) {
 
   respawn() {
     if (!this.scene) return;
-    
-    const spawnX = this.originalX + Phaser.Math.Between(-50, 50);
-    const spawnY = this.originalY - 50; // ← usar Y REAL
-    
-    this.setPosition(spawnX, spawnY);
+
+    // ⭐ Volver al EXACTO lugar donde nació
+    const spawnX = this.spawnX;
+    const spawnY = this.spawnY;
+
+    this.enableBody(true, spawnX, spawnY, true, true);
     this.setActive(true);
     this.setVisible(true);
     this.body.enable = true;
+
+    // restaurar valores
     this.hp = 3;
     this.clearTint();
     this.isAttacking = false;
     this.isTakingDamage = false;
+
+    // dirección aleatoria
     this.direction = Math.random() > 0.5 ? 1 : -1;
     this.setFlipX(this.direction < 0);
-    
+
     this.play(`${this.tipo}_walk`, true);
-  }
+}
+
 
   setCoopProperties(health = 3, speed = 45) {
     this.isCoopEnemy = true;
