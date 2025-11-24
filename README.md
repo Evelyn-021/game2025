@@ -1,4 +1,4 @@
-“Donut Rush” es un videojuego arcade multijugador inspirado en Donkey Kong. Combina plataformas clásicas con una competencia frenética por recolectar donas antes de que se acabe el tiempo.
+“Donut Rush” es un videojuego arcade multijugador inspirado en Donkey Kong y Donut Dodo. Combina plataformas clásicas con una competencia frenética por recolectar donas antes de que se acabe el tiempo.
 Saltá, esquivá enemigos y cooperá o competí para convertirte en el mejor recolector de donas de la ciudad.
 
 Descripción general del juego
