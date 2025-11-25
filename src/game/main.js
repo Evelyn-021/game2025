@@ -15,7 +15,7 @@ const config = {
   type: Phaser.AUTO,
 
   // 🎯 Resolución base fija para que el arte no se deforme
-  width: 1280,
+  width: 1024,
   height: 720,
 
   parent: 'game-container',
