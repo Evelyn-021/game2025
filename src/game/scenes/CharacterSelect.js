@@ -119,6 +119,13 @@ this.tweens.add({
       [INPUT_ACTIONS.NORTH]: ["ENTER", "SPACE"]
     });
 
+    // === CONTROLES DE TECLADO PARA PLAYER 2 (FLECHITAS) ===
+  this.inputSystem.configureKeyboardByString({
+  [INPUT_ACTIONS.LEFT]: ["LEFT"],
+  [INPUT_ACTIONS.RIGHT]: ["RIGHT"],
+  [INPUT_ACTIONS.NORTH]: ["UP"]   // ← elegir con la flecha ↑
+    }, "player2");
+
     this.updateSelection();
 
     this.add.text(W / 2, H * 0.90,

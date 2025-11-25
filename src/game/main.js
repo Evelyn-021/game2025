@@ -22,10 +22,9 @@ const config = {
   backgroundColor: '#43474b',
 
   scale: {
-    mode: Phaser.Scale.ENVELOP,
+    mode: Phaser.Scale.FIT,        // Mantiene proporciones siempre
     autoCenter: Phaser.Scale.CENTER_BOTH,
-},
-
+  },
 
   scene: [
     Preloader,
