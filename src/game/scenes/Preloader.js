@@ -123,7 +123,7 @@ this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_s
     this.load.audio("salud", "assets/audio/salud.wav");
     this.load.audio("bitemonster", "assets/audio/bitemonster.mp3");
     this.load.audio("daño", "assets/audio/daño.mp3");
-    
+    this.load.audio("jump", "assets/audio/jump.wav");
     //musica
     this.load.audio("menu","assets/audio/menu.mp3")
     this.load.audio("game", "assets/audio/game.wav")

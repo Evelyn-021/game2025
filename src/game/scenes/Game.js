@@ -80,7 +80,10 @@ export class Game extends Scene {
     this.audioManager.add("salud");
     this.audioManager.add("bitemonster");
     this.audioManager.add("daño");
-
+    this.audioManager.add("jump");
+    // 🔉 NUEVO: balancear volúmenes
+    this.audioManager.setSoundsVolume(0.35);
+    this.audioManager.setMusicVolume(0.50);
     this.damageSystem = new DamageSystem(this, this.audioManager);
 
     ServiceLocator.register("audio", this.audioManager);
@@ -665,8 +668,12 @@ update() {
     else this.player1.stopMoving();
   }
 
-  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1"))
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player1")) {
     this.player1.jump();
+    this.audioManager.play("jump", { volume: 0.15 });  // 🔉 volumen reducido
+}
+
+
 
   if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player1"))
     this.player1.collect();
@@ -693,8 +700,12 @@ update() {
     else this.player2.stopMoving();
   }
 
-  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2"))
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, "player2")) {
     this.player2.jump();
+    this.audioManager.play("jump", { volume: 0.15 });  // 🔉 volumen reducido
+}
+
+
 
   if (this.inputSystem.isJustPressed(INPUT_ACTIONS.EAST, "player2"))
     this.player2.collect();
