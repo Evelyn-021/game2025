@@ -4,8 +4,12 @@ export const GameState = {
   // ❤️ Vidas compartidas en COOP
   sharedLives: 6,
 
-  // ⭐ NUEVO: meta inicial de donas
-  metaDonas: 30,
+  // ⭐ Meta de donas
+  metaDonas: 15,
+
+  // 📦 NUEVO: Sistema de posiciones de caja
+  currentBoxPosition: 0, // Índice de la posición actual de la caja
+  boxPositions: [], // Array para almacenar las posiciones de las cajas
 
   player1: {
     character: null,
@@ -51,8 +55,12 @@ export const GameState = {
     this.gameStartTime = null;
     this.timerActive = false;
 
-    // ⭐ NUEVO: resetear meta de donas
-    this.metaDonas = 30;
+    // ⭐ Resetear meta de donas
+    this.metaDonas = 15;
+    
+    // 📦 NUEVO: Resetear posición de caja
+    this.currentBoxPosition = 0;
+    this.boxPositions = [];
   },
 
   getCharacters() {
@@ -75,14 +83,23 @@ export const GameState = {
     return this.sharedLives;
   },
 
- // COOP: curación compartida
-healShared() {
-  if (this.sharedLives < 6) {
-    this.sharedLives++;
-    console.log(`❤️ Vida recuperada! Vidas compartidas: ${this.sharedLives}`);
-  }
-  return this.sharedLives;
-},
+  // COOP: curación compartida
+  healShared() {
+    if (this.sharedLives < 6) {
+      this.sharedLives++;
+      console.log(`❤️ Vida recuperada! Vidas compartidas: ${this.sharedLives}`);
+    }
+    return this.sharedLives;
+  },
+
+  // 📦 NUEVO: Método para cambiar posición de caja
+  nextBoxPosition() {
+    if (this.boxPositions.length > 0) {
+      this.currentBoxPosition = (this.currentBoxPosition + 1) % this.boxPositions.length;
+      console.log(`📦 Nueva posición de caja: ${this.currentBoxPosition + 1}/${this.boxPositions.length}`);
+    }
+    return this.currentBoxPosition;
+  },
 
   // Timer
   startGameTimer() {

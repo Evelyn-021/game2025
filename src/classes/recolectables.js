@@ -27,6 +27,44 @@ export default class Recolectables {
       }
     });
   }
+  //spawnCherry
+  spawnCherry(x, y) {
+    const cherry = this.cherries.get(x, y, "cereza");
+
+    if (!cherry) return;
+
+    cherry.enableBody(true, x, y, true, true);
+    cherry.setActive(true).setVisible(true);
+    cherry.setScale(0.7);
+    cherry.body.allowGravity = false;
+
+    // Desaparecer si nadie la agarra en 10s
+    this.scene.time.delayedCall(10000, () => {
+      if (cherry.active) {
+        cherry.disableBody(true, true);
+      }
+    });
+
+    return cherry;
+  }
+  
+
+  //spawndonuts
+  spawnDonut(x, y) {
+  const donut = this.group.get(x, y, "donas");
+
+  if (!donut) return;
+
+  donut.enableBody(true, x, y, true, true);
+  donut.setActive(true).setVisible(true);
+  donut.setScale(0.7);
+  donut.setImmovable(true);
+  donut.body.allowGravity = false;
+
+  return donut;
+}
+
+
 
   addColliders(players, cajas) {
     players.forEach((player, index) => {
@@ -50,23 +88,31 @@ export default class Recolectables {
         }
       });
 
-      // 🍒 Recolectar cereza (automáticamente al pasar por encima)
-    this.scene.physics.add.overlap(player, this.cherries, (jugador, cherry) => {
-      // Solo en modo COOP y si no están a máxima vida
-      if (GameState.mode === "coop" && GameState.sharedLives < 6) {
-        cherry.disableBody(true, true);
-        GameState.healShared(); // Recuperar un corazón
-        this.scene.audioManager?.play("salud");
-        
-        // 🔥 CORREGIDO: Emitir el evento correcto que el HUD está escuchando
-        events.emit("update-life", { 
-          playerID: jugador.id, 
-          vidas: GameState.sharedLives 
-        });
-        
-        console.log(`🍒 Jugador ${jugador.id} recuperó vida! Vidas: ${GameState.sharedLives}`);
+      // 🍒 Recolectar cereza
+this.scene.physics.add.overlap(player, this.cherries, (jugador, cherry) => {
+  // ✅ SOLO se juntan si falta vida (menos de 6 vidas)
+  if (GameState.sharedLives < 6) {
+    cherry.disableBody(true, true);
+
+    // ❤️ Curar al equipo
+    GameState.healShared();
+    this.scene.audioManager?.play("salud");
+
+    events.emit("update-life", {
+      playerID: jugador.id,
+      vidas: GameState.sharedLives
+    });
+
+    // 🔥 Respawn en 2 segundos
+    this.scene.time.delayedCall(2000, () => {
+      const puntos = this.scene.objetosMapa.filter(o => o.name === "cerezaSpawn");
+      if (puntos.length > 0) {
+        const p = Phaser.Utils.Array.GetRandom(puntos);
+        this.spawnCherry(p.x, p.y);
       }
     });
+  }
+});
 
       // 📦 Entregar en caja
       const cajaAsignada = cajas[index];
@@ -96,6 +142,48 @@ export default class Recolectables {
           });
 
           this.scene.audioManager?.play("collect");
+
+          // 🎯 VERIFICACIÓN DE META - SOLO COOP
+          if (GameState.mode === "coop") {
+            const p1 = GameState.player1.donasRecolectadas || 0;
+            const p2 = GameState.player2.donasRecolectadas || 0;
+            const teamScore = p1 + p2;
+            const meta = GameState.metaDonas;
+            
+            if (teamScore >= meta) {
+              console.log(`🎉 ¡Meta alcanzada! ${teamScore}/${meta} donas`);
+              
+              const tiempo = this.scene.scene.get("HUDScene")?.timeLeft ?? 0;
+              
+              // Detener el juego inmediatamente
+              this.scene.scene.stop("HUDScene");
+              
+              // Ir a VictoryScene
+              this.scene.scene.start("VictoryScene", {
+                winner: "TEAM",
+                p1,
+                p2,
+                tiempo,
+              });
+              
+              // Aumentar meta para la próxima ronda
+              GameState.metaDonas += 10;
+              
+              // Salir del bucle para evitar ejecuciones adicionales
+              return;
+            }
+          }
+
+          // ⭐ VERSUS → respawn de la dona automáticamente
+          if (GameState.mode === "versus") {
+            this.scene.time.delayedCall(1500, () => {
+              const puntos = this.scene.objetosMapa.filter(o => o.name === "donaSpawn");
+              if (puntos.length > 0) {
+                const p = Phaser.Utils.Array.GetRandom(puntos);
+                this.spawnDonut(p.x, p.y);
+              }
+            });
+          }
         }
       });
     });

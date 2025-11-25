@@ -171,10 +171,41 @@ export class Game extends Scene {
       this.handlePlayerDeath(player, playerID);
     });
 
-    events.on("dona-recolectada", (playerId) => {
-      if (playerId === 1) GameState.player1.donasRecolectadas++;
-      if (playerId === 2) GameState.player2.donasRecolectadas++;
-    });
+   events.on("dona-recolectada", (playerId) => {
+  if (playerId === 1) GameState.player1.donasRecolectadas++;
+  if (playerId === 2) GameState.player2.donasRecolectadas++;
+  
+  // 🎯 VERIFICACIÓN DIRECTA DE META - SOLO COOP
+  if (GameState.mode === "coop") {
+    const p1 = GameState.player1.donasRecolectadas || 0;
+    const p2 = GameState.player2.donasRecolectadas || 0;
+    const teamScore = p1 + p2;
+    const meta = GameState.metaDonas;
+    
+    if (teamScore >= meta) {
+      console.log(`🎉 ¡Meta alcanzada! ${teamScore}/${meta} donas`);
+      
+      const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
+      
+      // 📦 MOVER CAJA A LA SIGUIENTE POSICIÓN
+      GameState.nextBoxPosition();
+      
+      // Detener el juego inmediatamente
+      this.scene.stop("HUDScene");
+      
+      // Ir a VictoryScene
+      this.scene.start("VictoryScene", {
+        winner: "TEAM",
+        p1,
+        p2,
+        tiempo,
+      });
+      
+      // Aumentar meta para la próxima ronda
+      GameState.metaDonas += 5;
+    }
+  }
+});
 
     // 🍒 Nuevo evento para cuando se recupera vida con cerezas
     events.on("vida-recuperada", ({ playerID, sharedLives }) => {
@@ -227,15 +258,19 @@ export class Game extends Scene {
 
     if (teamScore >= meta) {
       // ⭐ Alcanzaron la meta → Victoria inmediata
+      
+      // 📦 MOVER CAJA A LA SIGUIENTE POSICIÓN
+      GameState.nextBoxPosition();
+      
+      // Aumentar la meta para la próxima ronda
+      GameState.metaDonas += 5;
+      
       this.scene.start("VictoryScene", {
         winner: "TEAM",
         p1,
         p2,
         tiempo,
       });
-
-      // ⭐ Aumentar la meta para la próxima ronda
-      GameState.metaDonas += 30;
       
     } else {
       // ❌ No alcanzaron la meta → Derrota
@@ -250,7 +285,6 @@ export class Game extends Scene {
 
     return;
   }
-
   // =====================================================
   // 🟥 MODO VERSUS (igual que siempre)
   // =====================================================
@@ -305,37 +339,35 @@ export class Game extends Scene {
     this.escaleras = escaleras;
     this.fondoLayer = fondo;
 
-
     // 🟪 Buscar tiles marcados como WRAP en Tiled - MEJORADO
-  this.wrapTiles = [];
-  this.plataformas.forEachTile(tile => {
-      if (tile && tile.index !== -1) {
-          // Verificar propiedades del tile
-          const properties = this.map.tilesets[0].tileProperties || {};
-          const tileProperties = properties[tile.index - 1] || {};
-          
-          if (tileProperties.wrap === true) {
-              this.wrapTiles.push({
-                  pixelX: tile.pixelX,
-                  pixelY: tile.pixelY,
-                  width: this.map.tileWidth,
-                  height: this.map.tileHeight,
-                  getBounds: function() {
-                      return new Phaser.Geom.Rectangle(
-                          this.pixelX, 
-                          this.pixelY, 
-                          this.width, 
-                          this.height
-                      );
-                  }
-              });
-              console.log(`📍 Tile WRAP encontrado en: (${tile.pixelX}, ${tile.pixelY})`);
-          }
-      }
-  });
+    this.wrapTiles = [];
+    this.plataformas.forEachTile(tile => {
+        if (tile && tile.index !== -1) {
+            // Verificar propiedades del tile
+            const properties = this.map.tilesets[0].tileProperties || {};
+            const tileProperties = properties[tile.index - 1] || {};
+            
+            if (tileProperties.wrap === true) {
+                this.wrapTiles.push({
+                    pixelX: tile.pixelX,
+                    pixelY: tile.pixelY,
+                    width: this.map.tileWidth,
+                    height: this.map.tileHeight,
+                    getBounds: function() {
+                        return new Phaser.Geom.Rectangle(
+                            this.pixelX, 
+                            this.pixelY, 
+                            this.width, 
+                            this.height
+                        );
+                    }
+                });
+                console.log(`📍 Tile WRAP encontrado en: (${tile.pixelX}, ${tile.pixelY})`);
+            }
+        }
+    });
 
-  console.log(`🎯 Total de tiles WRAP: ${this.wrapTiles.length}`);
-
+    console.log(`🎯 Total de tiles WRAP: ${this.wrapTiles.length}`);
 
     // ===== OBJETOS =====
     this.objetosMapa = map.getObjectLayer("objetos")?.objects || [];
@@ -343,52 +375,64 @@ export class Game extends Scene {
     this.spawn2 = this.objetosMapa.find((o) => o.name === "player2") || { x: 500, y: 200 };
 
     // ===== PARALLAX =====
-  const { layers, stars } = Factory.createParallax(this, mode, width, height);
-  
-  // 🔴 SEPARAR nubes lilas del sistema de parallax
-  this.bgLayers = layers.filter(layer => layer.texture?.key !== "cloudysky");
-  this.staticCloud = layers.find(layer => layer.texture?.key === "cloudysky");
+    const { layers, stars } = Factory.createParallax(this, mode, width, height);
+    
+    // 🔴 SEPARAR nubes lilas del sistema de parallax
+    this.bgLayers = layers.filter(layer => layer.texture?.key !== "cloudysky");
+    this.staticCloud = layers.find(layer => layer.texture?.key === "cloudysky");
 
-  // Guardar posición original solo de las capas dinámicas
-  this.bgLayers.forEach(layer => {
-    layer.originalX = layer.x;
-    layer.originalY = layer.y;
-  });
+    // 🟠 HACER LA NUBE ROSA FRONTAL MÁS ANCHA
+    const pinkFront = this.bgLayers.find(layer => 
+        layer.texture?.key === "cake_valley_cotton-candy-front"
+    );
+    if (pinkFront) {
+        // Hacer la textura más ancha (por ejemplo, 1.8 veces en lugar de 1.4)
+        pinkFront.displayWidth = width * 1.8;
+        pinkFront.displayHeight = pinkFront.height;
+        console.log("🟠 Nube rosa frontal extendida para cubrir mejor los costados");
+    }
 
-  this.bgStars = stars;
+    // Guardar posición original solo de las capas dinámicas
+    this.bgLayers.forEach(layer => {
+        layer.originalX = layer.x;
+        layer.originalY = layer.y;
+    });
 
-  // ⭐ Configurar viento para nubes rosas, amarillas Y nubes lilas
-if (GameState.mode === "versus") {
-  const nubesAmarillas = this.bgLayers.find(layer => layer.texture?.key === "cake_valley_yellow-clouds");
-  const nubesRosasMiddle = this.bgLayers.find(layer => 
-    layer.texture?.key === "cake_valley_cotton-candy-middle");
-  const nubesRosasFront = this.bgLayers.find(layer => 
-    layer.texture?.key === "cake_valley_cotton-candy-front");
+    this.bgStars = stars;
 
-  // Nubes lilas (si están en staticCloud)
-  if (this.staticCloud) {
-    this.staticCloud.windPhase = Math.random() * 1000;
-  }
+    // ⭐ Configurar viento para nubes rosas, amarillas Y nubes lilas
+    if (GameState.mode === "versus") {
+        const nubesAmarillas = this.bgLayers.find(layer => layer.texture?.key === "cake_valley_yellow-clouds");
+        const nubesRosasMiddle = this.bgLayers.find(layer => 
+            layer.texture?.key === "cake_valley_cotton-candy-middle");
+        const nubesRosasFront = this.bgLayers.find(layer => 
+            layer.texture?.key === "cake_valley_cotton-candy-front");
 
-  // Nubes amarillas
-  if (nubesAmarillas) {
-    nubesAmarillas.baseY = nubesAmarillas.y;
-    nubesAmarillas.windPhase = Math.random() * 1000;
-  }
-  
-  // Nubes rosas
-  if (nubesRosasMiddle && nubesRosasFront) {
-    nubesRosasMiddle.baseY = nubesRosasMiddle.y;
-    nubesRosasFront.baseY = nubesRosasFront.y;
-    nubesRosasMiddle.windPhase = Math.random() * 1000;
-    nubesRosasFront.windPhase = Math.random() * 1000;
-  }
-}
+        // Nubes lilas (si están en staticCloud)
+        if (this.staticCloud) {
+            this.staticCloud.windPhase = Math.random() * 1000;
+        }
+
+        // Nubes amarillas
+        if (nubesAmarillas) {
+            nubesAmarillas.baseY = nubesAmarillas.y;
+            nubesAmarillas.windPhase = Math.random() * 1000;
+        }
+        
+        // Nubes rosas
+        if (nubesRosasMiddle && nubesRosasFront) {
+            nubesRosasMiddle.baseY = nubesRosasMiddle.y;
+            nubesRosasFront.baseY = nubesRosasFront.y;
+            nubesRosasMiddle.windPhase = Math.random() * 1000;
+            nubesRosasFront.windPhase = Math.random() * 1000;
+        }
+    }
+
     // ===== CAJAS =====
     if (mode === "versus") {
-      [this.caja1, this.caja2] = Factory.createBoxes(this);
+        [this.caja1, this.caja2] = Factory.createBoxes(this, this.objetosMapa);
     } else {
-      this.cajaCoop = Factory.createSharedBox(this, this.spawn1);
+        this.cajaCoop = Factory.createSharedBox(this, this.spawn1, this.objetosMapa);
     }
 
     // ===== CÁMARA =====
@@ -397,11 +441,10 @@ if (GameState.mode === "versus") {
     
     // Deadzone para mejor seguimiento
     cam.setDeadzone(
-      this.scale.width * 0.45,
-      this.scale.height * 0.40
+        this.scale.width * 0.45,
+        this.scale.height * 0.40
     );
-  }
-
+}
 
   // =============================================================
   // MODO VERSUS
