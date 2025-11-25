@@ -135,24 +135,26 @@ this.tweens.add({
 
   update() {
 
-    // INPUT
-    this.inputSystem.update?.();
+  this.inputSystem.update?.();
 
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT)) {
-      this.selectedIndex = 0;
-      this.updateSelection();
-    }
+  const playerKey = this.currentPlayer === 1 ? "player1" : "player2";
 
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT)) {
-      this.selectedIndex = 1;
-      this.updateSelection();
-    }
-
-    if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH)) {
-      const choice = this.selectedIndex === 0 ? "Pinky" : "Lamb";
-      this.selectCharacter(choice);
-    }
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.LEFT, playerKey)) {
+    this.selectedIndex = 0;
+    this.updateSelection();
   }
+
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.RIGHT, playerKey)) {
+    this.selectedIndex = 1;
+    this.updateSelection();
+  }
+
+  if (this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH, playerKey)) {
+    const choice = this.selectedIndex === 0 ? "Pinky" : "Lamb";
+    this.selectCharacter(choice);
+  }
+}
+
 
  updateSelection() {
   this.characters.forEach((sprite, i) => {
