@@ -9,6 +9,15 @@ export class ModeSelect extends Scene {
   }
 
   create() {
+// === MÚSICA DE FONDO DEL MENÚ (continúa) ===
+    // Solo reproducir si no está ya sonando
+    if (!this.sound.get("menu")?.isPlaying) {
+      this.menuMusic = this.sound.add("menu", { 
+        volume: 0.3,
+        loop: true 
+      });
+      this.menuMusic.play();
+    }
 
     const W = this.scale.width;
     const H = this.scale.height;
@@ -200,8 +209,19 @@ this.buttons.forEach(btn => {
 });
 
 }
-  selectMode(mode) {
+   selectMode(mode) {
     GameState.mode = mode;
+    
+    // ✅ DETENER MÚSICA DEL MENÚ ANTES DE IR AL JUEGO
+    if (this.sound.get("menu")?.isPlaying) {
+      this.sound.get("menu").stop();
+    }
+    
     this.scene.start("Game");
   }
+  shutdown() {
+    // Solo detener si vamos al juego, no si volvemos atrás
+  }
 }
+
+

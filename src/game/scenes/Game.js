@@ -20,6 +20,24 @@ export class Game extends Scene {
   }
 
   create() {
+
+
+    // === MÚSICA DE FONDO DEL JUEGO ===
+    // Asegurarse de que la música del menú esté detenida
+    if (this.sound.get("menu")?.isPlaying) {
+      this.sound.get("menu").stop();
+    }
+    
+    // Iniciar música del juego
+    this.gameMusic = this.sound.add("game", { 
+      volume: 0.25,  // Volumen moderado (25%)
+      loop: true 
+    });
+    this.gameMusic.play();
+
+
+
+
     // =====================================================
     // SISTEMA DE ENTRADA GLOBAL
     // =====================================================
@@ -300,6 +318,11 @@ export class Game extends Scene {
     // LIMPIEZA
     // =====================================================
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      // Detener música del juego al cerrar la escena
+      if (this.gameMusic && this.gameMusic.isPlaying) {
+        this.gameMusic.stop();
+      }
+      
       ServiceLocator.clear();
       events.off("player-dead");
       events.off("time-up");
