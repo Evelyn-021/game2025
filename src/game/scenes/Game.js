@@ -163,7 +163,7 @@ export class Game extends Scene {
       });
     });
 
-    // =====================================================
+      // =====================================================
     // ESCUCHAR EVENTOS
     // =====================================================
     events.on("player-dead", ({ player, playerID }) => {
@@ -176,13 +176,18 @@ export class Game extends Scene {
       if (playerId === 2) GameState.player2.donasRecolectadas++;
     });
 
-        // =============================================================
-        // EVENTO: ATAQUE DEL JUGADOR
-        // =============================================================
+    // 🍒 Nuevo evento para cuando se recupera vida con cerezas
+    events.on("vida-recuperada", ({ playerID, sharedLives }) => {
+      console.log(`🍒 Jugador ${playerID} recuperó vida! Vidas: ${sharedLives}`);
+      // Esto actualizará automáticamente el HUD si ya estás escuchando cambios en sharedLives
+    });
 
-            events.on("player-attack", (data) => {
-          this.checkPlayerAttack(data);
-          });
+    // =============================================================
+    // EVENTO: ATAQUE DEL JUGADOR
+    // =============================================================
+    events.on("player-attack", (data) => {
+      this.checkPlayerAttack(data);
+    });
 
 
     // =====================================================

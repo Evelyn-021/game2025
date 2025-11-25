@@ -7,6 +7,7 @@ export default class Recolectables {
   constructor(scene, objetos) {
     this.scene = scene;
     this.group = scene.physics.add.group();
+    this.cherries = scene.physics.add.group(); // Nuevo grupo para cerezas
 
     // Crear donas
     objetos.forEach((obj) => {
@@ -15,6 +16,14 @@ export default class Recolectables {
         donut.setData("type", "donut");
         donut.setImmovable(true);
         donut.body.allowGravity = false;
+      }
+      
+      // 🍒 Crear cerezas (solo en modo COOP)
+      if (obj.name === "cereza" && GameState.mode === "coop") {
+        const cherry = this.cherries.create(obj.x, obj.y, "cereza").setScale(0.7);
+        cherry.setData("type", "cherry");
+        cherry.setImmovable(true);
+        cherry.body.allowGravity = false;
       }
     });
   }
@@ -40,6 +49,24 @@ export default class Recolectables {
           this.scene.audioManager?.play("collect");
         }
       });
+
+      // 🍒 Recolectar cereza (automáticamente al pasar por encima)
+    this.scene.physics.add.overlap(player, this.cherries, (jugador, cherry) => {
+      // Solo en modo COOP y si no están a máxima vida
+      if (GameState.mode === "coop" && GameState.sharedLives < 6) {
+        cherry.disableBody(true, true);
+        GameState.healShared(); // Recuperar un corazón
+        this.scene.audioManager?.play("salud");
+        
+        // 🔥 CORREGIDO: Emitir el evento correcto que el HUD está escuchando
+        events.emit("update-life", { 
+          playerID: jugador.id, 
+          vidas: GameState.sharedLives 
+        });
+        
+        console.log(`🍒 Jugador ${jugador.id} recuperó vida! Vidas: ${GameState.sharedLives}`);
+      }
+    });
 
       // 📦 Entregar en caja
       const cajaAsignada = cajas[index];

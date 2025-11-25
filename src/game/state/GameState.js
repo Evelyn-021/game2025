@@ -75,11 +75,14 @@ export const GameState = {
     return this.sharedLives;
   },
 
-  // COOP: curación compartida
-  healShared() {
-    if (this.sharedLives < 6) this.sharedLives++;
-    return this.sharedLives;
-  },
+ // COOP: curación compartida
+healShared() {
+  if (this.sharedLives < 6) {
+    this.sharedLives++;
+    console.log(`❤️ Vida recuperada! Vidas compartidas: ${this.sharedLives}`);
+  }
+  return this.sharedLives;
+},
 
   // Timer
   startGameTimer() {
