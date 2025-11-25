@@ -25,20 +25,6 @@ if (GameState.mode === "coop") {
     // HUD
     events.emit("update-life", { playerID, vidas: GameState.sharedLives });
 
-    // ⭐ LANZAR COMBO SOLO SI LA VIDA BAJÓ
-    if (GameState.sharedLives < vidaAntes) {
-
-        // No lanzar si ya hay un combo activo
-        const comboActivo =
-            this.scene.combo1.active ||
-            this.scene.combo2.active;
-
-        if (!comboActivo && GameState.sharedLives < 6) {
-            // Se activa solo el combo del jugador dañado
-            if (playerID === 1) this.scene.combo1.start();
-            if (playerID === 2) this.scene.combo2.start();
-        }
-    }
 
     // FIN: si las vidas llegan a 0 → muerte total
     if (GameState.sharedLives <= 0) {

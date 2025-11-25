@@ -38,7 +38,7 @@ export class Preloader extends Scene {
     this.load.image('escalera', 'assets/tilemap/escalera.png');   // Tileset de escaleras
     this.load.tilemapTiledJSON('map', 'assets/tilemap/map.json'); // Mapa con ambas capas
     this.load.tilemapTiledJSON("map2", "assets/tilemap/map2.json");
-    
+    this.load.image("premiodona","assets/tilemap/premiodona.png");
     // === PARALLAX ===
 //
 // MODO COOPERATIVO  🌍 (Lila Land)
@@ -109,7 +109,8 @@ this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_s
     this.load.image('donas', 'assets/image/personajes/donas.png');
     this.load.image('donas2', 'assets/image/personajes/donas2.png');
     this.load.image('caja', 'assets/image/personajes/caja.png');
-
+    this.load.image("cereza","assets/image/personajes/cereza.png")
+    
       // === SALUD ===
       this.load.spritesheet('health', 'assets/image/personajes/health.png', {
         frameWidth: 32,
@@ -122,7 +123,10 @@ this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_s
     this.load.audio("salud", "assets/audio/salud.wav");
     this.load.audio("bitemonster", "assets/audio/bitemonster.mp3");
     this.load.audio("daño", "assets/audio/daño.mp3");
-
+    this.load.audio("jump", "assets/audio/jump.wav");
+    //musica
+    this.load.audio("menu","assets/audio/menu.mp3")
+    this.load.audio("game", "assets/audio/game.wav")
   }
 
   create() {

@@ -220,32 +220,72 @@ return {
   }
 
   /**
-   * 📦 Crea y configura las cajas del nivel.
+   * 📦 Crea y configura las cajas del nivel desde objetos Tiled.
    * @param {Phaser.Scene} scene - Escena actual
+   * @param {Array} objetosMapa - Objetos del mapa (Tiled)
    * @returns {Array} [caja1, caja2]
    */
-  static createBoxes(scene) {
-    const caja1 = scene.physics.add.sprite(120, 560, "caja").setScale(1.1);
-    const caja2 = scene.physics.add.sprite(960, 560, "caja").setScale(1.1);
+  static createBoxes(scene, objetosMapa) {
+    // Buscar objetos de cajas en el mapa
+    const caja1Obj = objetosMapa.find(o => o.name === "caja1");
+    const caja2Obj = objetosMapa.find(o => o.name === "caja2");
+    
+    // Posiciones por defecto si no se encuentran en el mapa
+    const caja1 = scene.physics.add.sprite(
+      caja1Obj ? caja1Obj.x : 120, 
+      caja1Obj ? caja1Obj.y : 560, 
+      "caja"
+    ).setScale(1.1);
+    
+    const caja2 = scene.physics.add.sprite(
+      caja2Obj ? caja2Obj.x : 960, 
+      caja2Obj ? caja2Obj.y : 560, 
+      "caja"
+    ).setScale(1.1);
 
     [caja1, caja2].forEach(c => {
       c.setImmovable(true);
       c.body.allowGravity = false;
     });
 
+    console.log(`📦 Cajas VERSUS posicionadas: P1(${caja1.x}, ${caja1.y}), P2(${caja2.x}, ${caja2.y})`);
+    
     return [caja1, caja2];
   }
 
   /**
-   * 📦 Crea caja compartida para modo coop
+   * 📦 Crea caja compartida para modo coop desde objeto Tiled
    * @param {Phaser.Scene} scene - Escena actual
-   * @param {Object} spawn - Posición de spawn
+   * @param {Object} spawn - Posición de spawn (fallback)
+   * @param {Array} objetosMapa - Objetos del mapa (Tiled)
    * @returns {Phaser.Physics.Arcade.Sprite} caja
    */
-  static createSharedBox(scene, spawn) {
-    const caja = scene.physics.add.sprite(spawn.x, spawn.y, "caja").setScale(1.2);
+  static createSharedBox(scene, spawn, objetosMapa) {
+    // Buscar TODAS las posiciones de caja_coop en el mapa
+    const cajaCoopObjs = objetosMapa.filter(o => o.name === "cajacoop" || o.name === "caja_coop");
+    
+    // 📦 Guardar las posiciones en GameState (solo la primera vez)
+    if (GameState.boxPositions.length === 0) {
+      GameState.boxPositions = cajaCoopObjs.map(obj => ({ x: obj.x, y: obj.y }));
+      console.log(`📦 Se encontraron ${GameState.boxPositions.length} posiciones de caja en el mapa`);
+    }
+    
+    // Usar la posición actual según el índice
+    let currentPos;
+    if (GameState.boxPositions.length > 0) {
+      const currentIndex = GameState.currentBoxPosition % GameState.boxPositions.length;
+      currentPos = GameState.boxPositions[currentIndex];
+    } else {
+      // Fallback si no hay posiciones definidas
+      currentPos = { x: spawn.x + 200, y: spawn.y - 100 };
+    }
+    
+    const caja = scene.physics.add.sprite(currentPos.x, currentPos.y, "caja").setScale(1.2);
     caja.setImmovable(true);
     caja.body.allowGravity = false;
+    
+    console.log(`📦 Caja COOP posicionada en posición ${GameState.currentBoxPosition + 1}/${GameState.boxPositions.length}: (${currentPos.x}, ${currentPos.y})`);
+    
     return caja;
   }
 

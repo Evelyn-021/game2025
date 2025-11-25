@@ -8,6 +8,16 @@ export class MainMenu extends Scene {
   }
 
   create() {
+// === MÚSICA DE FONDO DEL MENÚ ===
+    // Solo reproducir si no está ya sonando
+    if (!this.sound.get("menu")?.isPlaying) {
+      this.menuMusic = this.sound.add("menu", { 
+        volume: 0.3,  // Volumen moderado (30%)
+        loop: true 
+      });
+      this.menuMusic.play();
+    }
+
     // === FONDO ===
     const bg = new Background(this);
     bg.create();
@@ -267,11 +277,16 @@ for (let i = 0; i < cantidad; i++) {
     }
   }
 
-  startGame() {
+   startGame() {
+    // NO detener la música aquí - seguirá sonando en CharacterSelect
     this.startButton.setColor("#fca8ffff");
 
     this.time.delayedCall(300, () => {
       this.scene.start("CharacterSelect");
     });
+  }
+  // Método para limpiar recursos cuando se cierra la escena
+  shutdown() {
+    // NO detener la música aquí para que continúe en las siguientes escenas
   }
 }

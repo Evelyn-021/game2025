@@ -234,26 +234,31 @@ if (GameState.mode === "versus") {
 
 
     events.on("update-life", ({ playerID, vidas }) => {
-      // Coop
-      if (GameState.mode === "coop") {
-        GameState.sharedLives = vidas;
+  console.log("🫀 HUD recibió update-life:", { playerID, vidas }); // Debug
+  
+  // Coop
+  if (GameState.mode === "coop") {
+    GameState.sharedLives = vidas;
 
-        this.updateHearts(this.sharedHearts, vidas);
+    // 🔥 CORREGIDO: Usar this.sharedHearts que ya existe
+    if (this.sharedHearts) {
+      this.updateHearts(this.sharedHearts, vidas);
 
-        if (vidas >= 0 && vidas < this.sharedHearts.length) {
-          this.animateHeartBeat(this.sharedHearts[vidas]);
-        }
-        return;
+      if (vidas >= 0 && vidas < this.sharedHearts.length) {
+        this.animateHeartBeat(this.sharedHearts[vidas]);
       }
+    }
+    return;
+  }
 
-      // Versus
-      const hearts = playerID === 1 ? this.heartsP1 : this.heartsP2;
-      this.updateHearts(hearts, vidas);
+  // Versus
+  const hearts = playerID === 1 ? this.heartsP1 : this.heartsP2;
+  this.updateHearts(hearts, vidas);
 
-      if (vidas >= 0 && vidas < hearts.length) {
-        this.animateHeartBeat(hearts[vidas]);
-      }
-    });
+  if (vidas >= 0 && vidas < hearts.length) {
+    this.animateHeartBeat(hearts[vidas]);
+  }
+});
   }
 
   // ❤️ Crear corazones
