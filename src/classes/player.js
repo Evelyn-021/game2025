@@ -204,10 +204,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.jump();
     }
 
-    const action = this.scene.inputSystem?.isJustPressed?.("east", this.playerKey);
-    if (action) {
-      this.collect();
-    }
   }
 
   // === CREACIÓN DE ANIMACIONES (CORREGIDO CON ANIMACIONES DE ATAQUE) ===

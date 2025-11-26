@@ -40,10 +40,10 @@ export class VictoryScene extends Scene {
     // 🏆 TÍTULO VICTORIA
     this.add.text(W / 2, 60, "¡VICTORIA!", {
       fontFamily: '"Press Start 2P"',
-      fontSize: 64,
+      fontSize: 48,
       color: "#ffff00",
       stroke: "#ff6600",
-      strokeThickness: 8,
+      strokeThickness: 6,
       shadow: {
         offsetX: 6,
         offsetY: 6,
@@ -71,10 +71,10 @@ export class VictoryScene extends Scene {
       // 🟣 COOP — mensaje especial
       this.add.text(W / 2, 140, "¡AMBOS JUGADORES GANARON!", {
         fontFamily: '"Press Start 2P"',
-        fontSize: 28,
+        fontSize: 22,
         color: "#00ff88",
         stroke: "#000",
-        strokeThickness: 5
+        strokeThickness: 4
       }).setOrigin(0.5);
     }
 
@@ -90,13 +90,15 @@ export class VictoryScene extends Scene {
     // PANEL PUNTUACIÓN
     // ==============================
 
-    this.add.rectangle(W / 2, 320, 700, 200, 0x000000, 0.8)
-      .setStrokeStyle(5, 0xffff00);
+    // 🟨 PANEL MÁS GRANDE (para que entre TODO)
+    this.add.rectangle(W / 2, 340, 650, 220, 0x000000, 0.8)
+    .setStrokeStyle(5, 0xffff00);
+
 
     // Título tabla
     this.add.text(W / 2, 270, "PUNTUACIONES", {
       fontFamily: '"Press Start 2P"',
-      fontSize: 24,
+      fontSize: 20,
       color: "#ffff00",
       stroke: "#000",
       strokeThickness: 4
@@ -112,7 +114,7 @@ export class VictoryScene extends Scene {
       const nextMeta = GameState.metaDonas; // Próxima meta
 
       // PUNTUACIÓN DEL EQUIPO
-      this.add.text(W / 2, 310, `PUNTUACIÓN: ${teamScore} DONAS`, {
+        this.add.text(W / 2, 300, `PUNTUACIÓN: ${teamScore} DONAS`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 18,
         color: "#ff66cc",
@@ -121,7 +123,7 @@ export class VictoryScene extends Scene {
       }).setOrigin(0.5);
 
       // META ALCANZADA
-      this.add.text(W / 2, 340, `META ALCANZADA: ${currentMeta} DONAS`, {
+      this.add.text(W / 2, 330, `META ALCANZADA: ${currentMeta} DONAS`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 16,
         color: "#00ff88",
@@ -130,7 +132,7 @@ export class VictoryScene extends Scene {
       }).setOrigin(0.5);
 
       // PRÓXIMA META
-      this.add.text(W / 2, 370, `PRÓXIMA META: ${nextMeta} DONAS`, {
+      this.add.text(W / 2, 360, `PRÓXIMA META: ${nextMeta} DONAS`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 16,
         color: "#ffaa00",
@@ -147,7 +149,7 @@ export class VictoryScene extends Scene {
         localStorage.setItem("bestTeamScore", JSON.stringify(best));
       }
 
-      this.add.text(W / 2, 400, `RÉCORD: ${best.donas} DONAS`, {
+        this.add.text(W / 2, 395, `RÉCORD: ${best.donas} DONAS`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 14,
         color: "#ffaa00",
@@ -210,14 +212,14 @@ export class VictoryScene extends Scene {
 
         this.add.text(W / 2, 400, "¡NUEVO RÉCORD MUNDIAL!", {
           fontFamily: '"Press Start 2P"',
-          fontSize: 20,
+          fontSize: 16,
           color: "#ff0000",
           stroke: "#ffff00",
           strokeThickness: 4
         }).setOrigin(0.5);
       }
 
-      this.add.text(W / 2, 440, `RÉCORD: ${bestRecord.winner} - ${bestRecord.donas}`, {
+      this.add.text(W / 2, 395, `RÉCORD: ${bestRecord.winner} - ${bestRecord.donas}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 14,
         color: "#ffaa00",
@@ -227,53 +229,53 @@ export class VictoryScene extends Scene {
     }
 
     // ==============================
-    // BOTONES INTERACTIVOS
-    // ==============================
+// BOTONES INTERACTIVOS SEPARADOS
+// ==============================
 
-    this.add.text(W / 2, 520, "¿QUÉ QUIERES HACER?", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "20px",
-      color: "#00ff00",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
-
-    // Crear botones
+if (GameState.mode === "coop") {
     this.buttons = [];
 
-    // 🎮 BOTÓN SEGUIR JUGANDO - SOLO en COOP
-    if (GameState.mode === "coop") {
-      this.continuarButton = this.add.text(W / 2, 560, "SEGUIR JUGANDO", {
+    this.continuarButton = this.add.text(W / 2, 500, "SEGUIR JUGANDO", {
         fontFamily: '"Press Start 2P"',
-        fontSize: "24px",
+        fontSize: "20px",
         color: "#33ff33",
         stroke: "#000",
         strokeThickness: 4,
-      }).setOrigin(0.5).setInteractive();
-      this.buttons.push(this.continuarButton);
-    }
+    }).setOrigin(0.5).setInteractive();
 
-    // 🔄 BOTÓN REVANCHA - SOLO en VERSUS
-    if (GameState.mode === "versus") {
-      this.revanchaButton = this.add.text(W / 2, this.buttons.length > 0 ? 600 : 560, "REVANCHA", {
+    this.menuButton = this.add.text(W / 2, 560, "MENÚ PRINCIPAL", {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "24px",
+        color: "#3366ff",
+        stroke: "#000",
+        strokeThickness: 4,
+    }).setOrigin(0.5).setInteractive();
+
+    this.buttons.push(this.continuarButton, this.menuButton);
+
+} else {
+    // VERSUS
+    this.buttons = [];
+
+    this.revanchaButton = this.add.text(W / 2, 500, "REVANCHA", {
         fontFamily: '"Press Start 2P"',
         fontSize: "24px",
         color: "#ff33ff",
         stroke: "#000",
         strokeThickness: 4,
-      }).setOrigin(0.5).setInteractive();
-      this.buttons.push(this.revanchaButton);
-    }
-
-    // 🏠 BOTÓN MENÚ PRINCIPAL - SIEMPRE disponible
-    this.menuButton = this.add.text(W / 2, this.buttons.length > 0 ? (GameState.mode === "coop" ? 600 : 640) : 560, "MENÚ PRINCIPAL", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "24px",
-      color: "#3366ff",
-      stroke: "#000",
-      strokeThickness: 4,
     }).setOrigin(0.5).setInteractive();
-    this.buttons.push(this.menuButton);
+
+    this.menuButton = this.add.text(W / 2, 560, "MENÚ PRINCIPAL", {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "24px",
+        color: "#3366ff",
+        stroke: "#000",
+        strokeThickness: 4,
+    }).setOrigin(0.5).setInteractive();
+
+    this.buttons.push(this.revanchaButton, this.menuButton);
+}
+
 
     this.selectedIndex = 0;
     this.updateSelection();

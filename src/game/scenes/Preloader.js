@@ -127,6 +127,9 @@ this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_s
     //musica
     this.load.audio("menu","assets/audio/menu.mp3")
     this.load.audio("game", "assets/audio/game.wav")
+
+    
+    
   }
 
   create() {

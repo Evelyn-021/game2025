@@ -69,37 +69,37 @@ if (!this.sound.get("menu")) {
 
     // === LOGO ===
     this.logo = this.add
-      .image(this.scale.width / 2, 250, "logo")
-      .setScale(0.4)
-      .setAlpha(0)
-      .setDepth(5);
+  .image(this.scale.width / 2, 220, "logo")
+  .setScale(0.32)      // antes 0.4
+  .setAlpha(0)
+  .setDepth(5);
 
-    // Glow del logo
-    this.logoGlow = this.add
-      .image(this.scale.width / 2, 250, "logo")
-      .setTint(0xffaaff)
-      .setScale(0.42)
-      .setAlpha(0.15)
-      .setDepth(4);
+this.logoGlow = this.add
+  .image(this.scale.width / 2, 220, "logo")
+  .setTint(0xffaaff)
+  .setScale(0.35)      // antes 0.42
+  .setAlpha(0.15)
+  .setDepth(4);
 
-    // Animación POP
-    this.tweens.add({
-      targets: [this.logo, this.logoGlow],
-      alpha: 1,
-      scale: 0.6,
-      duration: 900,
-      ease: "Back.out",
-    });
+// POP más chico
+this.tweens.add({
+  targets: [this.logo, this.logoGlow],
+  alpha: 1,
+  scale: 0.48,        // antes 0.6
+  duration: 900,
+  ease: "Back.out",
+});
 
-    // Flotación del logo
-    this.tweens.add({
-      targets: [this.logo, this.logoGlow],
-      y: 240,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
+// Flotación
+this.tweens.add({
+  targets: [this.logo, this.logoGlow],
+  y: 210,             // antes 240
+  duration: 2000,
+  yoyo: true,
+  repeat: -1,
+  ease: "Sine.easeInOut",
+});
+
 
   // ============================================================
 // 🍩 DULCES FLOTANDO — MÁS GALLETAS + SEPARACIÓN ENTRE ELLOS
@@ -158,7 +158,7 @@ for (let i = 0; i < cantidad; i++) {
 
   // Crear dulce
   let obj = this.add.image(x, y, tex)
-    .setScale(0.30 + Math.random() * 0.25)
+    .setScale(0.30 + Math.random() * 0.15)
     .setAlpha(0.92)
     .setDepth(7);
 
@@ -198,12 +198,12 @@ for (let i = 0; i < cantidad; i++) {
 
     // === BOTÓN "JUGAR" ===
     this.startButton = this.add
-      .text(this.scale.width / 2, 560, "JUGAR", {
+      .text(this.scale.width / 2, 500, "JUGAR", {
         fontFamily: '"Press Start 2P", "Courier New", monospace',
-        fontSize: 32,
+        fontSize: 26,
         color: "#ffc1e7ff",
         stroke: "#ff009dff",
-        strokeThickness: 6,
+        strokeThickness: 4,
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
@@ -230,7 +230,7 @@ for (let i = 0; i < cantidad; i++) {
 
     // Texto inferior
     this.pressText = this.add
-      .text(this.scale.width / 2, 620, "Presiona A o X para comenzar", {
+      .text(this.scale.width / 2, 560, "Presiona A o X para comenzar", {
         fontFamily: '"Press Start 2P", "Courier New", monospace',
         fontSize: 14,
         color: "#ffff00",

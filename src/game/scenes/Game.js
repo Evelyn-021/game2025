@@ -441,16 +441,12 @@ if (music) {
         this.cajaCoop = Factory.createSharedBox(this, this.spawn1, this.objetosMapa);
     }
 
-    // ===== CÁMARA =====
-    const cam = this.cameras.main;
-    
-    cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    
-    // Deadzone para mejor seguimiento
-    cam.setDeadzone(
-        this.scale.width * 0.45,
-        this.scale.height * 0.40
-    );
+   // ===== CÁMARA FIJA — PIXEL PERFECT =====
+const cam = this.cameras.main;
+cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+
+
 }
 
   // =============================================================
@@ -631,6 +627,22 @@ applyScreenWrap(player) {
 // LOOP DE UPDATE
 // =============================================================
 update() {
+  // === CÁMARA SIGUIENDO A LOS DOS (SIN ZOOM) ===
+{
+    const cam = this.cameras.main;
+
+    // punto medio
+    const cx = (this.player1.x + this.player2.x) / 2;
+    const cy = (this.player1.y + this.player2.y) / 2;
+
+    // seguir en pixel-perfect
+    cam.scrollX = cx - cam.width / 2;
+    cam.scrollY = cy - cam.height / 2;
+
+    cam.setZoom(1);
+    cam.roundPixels = true;
+}
+
 
  // ⭐ Wrap solo en plataformas especiales
   this.applyScreenWrap(this.player1);
@@ -745,26 +757,10 @@ update() {
 
 
 
-    // CÁMARA DINÁMICA
-    const cam = this.cameras.main;
-    const cx = (this.player1.x + this.player2.x) / 2;
-    const cy = (this.player1.y + this.player2.y) / 2;
-    const lerp = 0.08;
-
-    cam.scrollX += (cx - cam.midPoint.x) * lerp;
-    cam.scrollY += (cy - cam.midPoint.y) * lerp;
-
-    // ZOOM DINÁMICO
-    const distX = Math.abs(this.player1.x - this.player2.x);
-    const distY = Math.abs(this.player1.y - this.player2.y);
-    const dist = Math.max(distX, distY);
-
-    const targetZoom = Phaser.Math.Clamp(1.2 - dist / 1200, 0.85, 1.2);
-    cam.zoom = Phaser.Math.Linear(cam.zoom, targetZoom, 0.05);
-
  // =========================================================
   // PARALLAX - CORREGIDO
   // =========================================================
+  const cam = this.cameras.main;  // ← NECESARIO
   const vw = this.scale.width / cam.zoom;
   const vh = this.scale.height / cam.zoom;
   const ox = cam.midPoint.x;

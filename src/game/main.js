@@ -14,16 +14,24 @@ import { EmpateScene } from "./scenes/EmpateScene.js";
 const config = {
   type: Phaser.AUTO,
 
-  // 🎯 Resolución base fija para que el arte no se deforme
-  width: 1024,
-  height: 720,
+  // 🔥 Resolución base ideal para pixel-art
+  width: 800,
+  height: 600,
 
   parent: 'game-container',
   backgroundColor: '#43474b',
 
   scale: {
-    mode: Phaser.Scale.FIT,        // Mantiene proporciones siempre
+    // 🔥 Modos similares al proyecto de tus compañeros PERO sin perder pixel-perfect
+    mode: Phaser.Scale.RESIZE,             // se adapta a la ventana
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    expandParent: true,
+  },
+
+  render: {
+    pixelArt: true,     // 🔥 Mantiene tus píxeles definidos
+    antialias: false,
+    roundPixels: true,
   },
 
   scene: [
@@ -42,7 +50,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 300 },
-  
+      debug: false
     },
   },
 
@@ -50,9 +58,9 @@ const config = {
     gamepad: true
   }
 };
-// Función de inicio del juego
+
+// Función para iniciar el juego
 const StartGame = (parent) => {
-  // ⚠️ Importante: usamos Phaser.Game, no "Game" directamente
   return new Phaser.Game({ ...config, parent });
 };
 
