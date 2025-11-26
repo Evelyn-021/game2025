@@ -5,7 +5,7 @@ export const GameState = {
   sharedLives: 6,
 
   // ⭐ Meta de donas
-  metaDonas: 15,
+  metaDonas: 5,
 
   // 📦 NUEVO: Sistema de posiciones de caja
   currentBoxPosition: 0, // Índice de la posición actual de la caja
@@ -56,7 +56,7 @@ export const GameState = {
     this.timerActive = false;
 
     // ⭐ Resetear meta de donas
-    this.metaDonas = 15;
+    this.metaDonas = 5;
     
     // 📦 NUEVO: Resetear posición de caja
     this.currentBoxPosition = 0;
@@ -100,6 +100,13 @@ export const GameState = {
     }
     return this.currentBoxPosition;
   },
+
+  resetDonas() {
+  this.player1.donasRecolectadas = 0;
+  this.player2.donasRecolectadas = 0;
+  console.log("🔄 Donas reseteadas a 0"); // Para debug
+},
+
 
   // Timer
   startGameTimer() {

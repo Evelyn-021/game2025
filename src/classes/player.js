@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { events } from "./GameEvents.js";
+import { GameState } from "../game/state/GameState.js";
+
 import Combo from "./combo.js";
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, texture, id) {
@@ -15,7 +17,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     console.log(`🎮 Player ${id} creado con texture: ${texture}`);
     
     this.speed = 160;
-    this.jumpStrength = -280;
+    this.jumpStrength = -360;
     this.score = 0;
     this.canMove = true;
     this.setCollideWorldBounds(true);
@@ -133,11 +135,23 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   jump() {
-    if (this.body && this.body.blocked && this.body.blocked.down && !this.isAttacking) {
-      this.setVelocityY(this.jumpStrength);
-      this.play(`${this.textureName}_jump`, true);
+    if (!this.body || !this.body.blocked.down || this.isAttacking) return;
+
+    let fuerzaSalto = 320; // Valor base (si algún modo futuro lo usa)
+
+    // === FUERZA DE SALTO SEGÚN MODO ===
+    if (GameState.mode === "versus") {
+        fuerzaSalto = 360; // Salto más alto
     }
-  }
+
+    if (GameState.mode === "coop") {
+        fuerzaSalto = 300; // Salto más controlado
+    }
+
+    this.setVelocityY(-fuerzaSalto);
+    this.play(`${this.textureName}_jump`, true);
+}
+
 
   collect() {
     this.score++;

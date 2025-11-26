@@ -20,6 +20,8 @@ export class Game extends Scene {
   }
 
   create() {
+// Detener música del menú si sigue viva
+this.sound.stopByKey("menu");
 
 
     // === MÚSICA DE FONDO DEL JUEGO ===
@@ -29,11 +31,17 @@ export class Game extends Scene {
     }
     
     // Iniciar música del juego
-    this.gameMusic = this.sound.add("game", { 
-      volume: 0.25,  // Volumen moderado (25%)
-      loop: true 
-    });
+    // Si ya existe una instancia de la música del game, usar esa
+const music = this.sound.get("game");
+
+if (music) {
+    if (!music.isPlaying) music.play();
+    this.gameMusic = music;
+} else {
+    this.gameMusic = this.sound.add("game", { volume:0.25, loop:true });
     this.gameMusic.play();
+}
+
 
 
 
@@ -124,7 +132,7 @@ export class Game extends Scene {
 
     this.player1 = new Player(this, this.spawn1.x, this.spawn1.y, char1, 1);
     this.player2 = new Player(this, this.spawn2.x, this.spawn2.y, char2, 2);
-
+    
     // 🔄 INICIALIZAR PROPIEDAD DE WRAP
     this.player1.isWrapping = false;
     this.player2.isWrapping = false;
@@ -192,41 +200,7 @@ export class Game extends Scene {
       this.handlePlayerDeath(player, playerID);
     });
 
-   events.on("dona-recolectada", (playerId) => {
-  if (playerId === 1) GameState.player1.donasRecolectadas++;
-  if (playerId === 2) GameState.player2.donasRecolectadas++;
   
-  // 🎯 VERIFICACIÓN DIRECTA DE META - SOLO COOP
-  if (GameState.mode === "coop") {
-    const p1 = GameState.player1.donasRecolectadas || 0;
-    const p2 = GameState.player2.donasRecolectadas || 0;
-    const teamScore = p1 + p2;
-    const meta = GameState.metaDonas;
-    
-    if (teamScore >= meta) {
-      console.log(`🎉 ¡Meta alcanzada! ${teamScore}/${meta} donas`);
-      
-      const tiempo = this.scene.get("HUDScene")?.timeLeft ?? 0;
-      
-      // 📦 MOVER CAJA A LA SIGUIENTE POSICIÓN
-      GameState.nextBoxPosition();
-      
-      // Detener el juego inmediatamente
-      this.scene.stop("HUDScene");
-      
-      // Ir a VictoryScene
-      this.scene.start("VictoryScene", {
-        winner: "TEAM",
-        p1,
-        p2,
-        tiempo,
-      });
-      
-      // Aumentar meta para la próxima ronda
-      GameState.metaDonas += 5;
-    }
-  }
-});
 
     // 🍒 Nuevo evento para cuando se recupera vida con cerezas
     events.on("vida-recuperada", ({ playerID, sharedLives }) => {
@@ -241,7 +215,13 @@ export class Game extends Scene {
       this.checkPlayerAttack(data);
     });
 
+    // =====================================================
+    // REINICIAR DONAS ANTES DE HUD PARA EVITAR NaN
+    // =====================================================
+    GameState.player1.donasRecolectadas = 0;
+    GameState.player2.donasRecolectadas = 0;
 
+    
     // =====================================================
     // HUD
     // =====================================================
@@ -463,6 +443,7 @@ export class Game extends Scene {
 
     // ===== CÁMARA =====
     const cam = this.cameras.main;
+    
     cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     
     // Deadzone para mejor seguimiento

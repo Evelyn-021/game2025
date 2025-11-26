@@ -8,6 +8,7 @@ export class VictoryScene extends Scene {
   }
 
   create(data) {
+    this.data = data;  // 💥 Necesario para que selectContinuar tenga p1 y p2
     const { winner, p1 = 0, p2 = 0, tiempo = 0 } = data;
 
     const W = this.scale.width;

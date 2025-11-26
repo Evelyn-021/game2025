@@ -8,15 +8,19 @@ export class MainMenu extends Scene {
   }
 
   create() {
-// === MÚSICA DE FONDO DEL MENÚ ===
-    // Solo reproducir si no está ya sonando
-    if (!this.sound.get("menu")?.isPlaying) {
-      this.menuMusic = this.sound.add("menu", { 
-        volume: 0.3,  // Volumen moderado (30%)
-        loop: true 
-      });
-      this.menuMusic.play();
-    }
+// === MÚSICA DEL MENÚ — SINGLETON ===
+if (!this.sound.get("menu")) {
+  this.menuMusic = this.sound.add("menu", {
+    volume: 0.3,
+    loop: true
+  });
+  this.menuMusic.play();
+} else {
+  // Si ya existe, asegurar que suene
+  const m = this.sound.get("menu");
+  if (!m.isPlaying) m.play();
+}
+
 
     // === FONDO ===
     const bg = new Background(this);

@@ -9,15 +9,12 @@ export class ModeSelect extends Scene {
   }
 
   create() {
-// === MÚSICA DE FONDO DEL MENÚ (continúa) ===
-    // Solo reproducir si no está ya sonando
-    if (!this.sound.get("menu")?.isPlaying) {
-      this.menuMusic = this.sound.add("menu", { 
-        volume: 0.3,
-        loop: true 
-      });
-      this.menuMusic.play();
-    }
+// === REUTILIZAR MÚSICA DEL MENÚ ===
+const menu = this.sound.get("menu");
+if (menu && !menu.isPlaying) {
+  menu.play();
+}
+
 
     const W = this.scale.width;
     const H = this.scale.height;
