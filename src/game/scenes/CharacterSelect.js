@@ -2,7 +2,8 @@ import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import Background from "../../classes/Background.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
-
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
 export class CharacterSelect extends Scene {
   constructor() {
     super("CharacterSelect");
@@ -77,7 +78,7 @@ this.tweens.add({
     //========
     //TITULO 
     //========
-    this.titleText = this.add.text(W / 2, H * 0.12, "JUGADOR 1: ELIGE PERSONAJE", {
+    this.titleText = this.add.text(W / 2, H * 0.12, getPhrase("JUGADOR 1: ELIGE PERSONAJE"),{
     fontFamily: '"Press Start 2P"',
     fontSize: "32px",
     color: "#ffb6ff",         // rosa pastel interno
@@ -128,8 +129,7 @@ this.tweens.add({
 
     this.updateSelection();
 
-    this.add.text(W / 2, H * 0.90,
-      "← → PARA NAVEGAR, ENTER/A PARA SELECCIONAR",
+    this.add.text(W / 2,H * 0.90, getPhrase("← → PARA NAVEGAR, ENTER/A PARA SELECCIONAR"),
       {
         fontFamily: '"Press Start 2P"',
         fontSize: "12px",
@@ -191,7 +191,7 @@ this.tweens.add({
     if (this.currentPlayer === 1) {
       GameState.player1.character = character;
       this.currentPlayer = 2;
-      this.titleText.setText("JUGADOR 2: ELIGE PERSONAJE");
+      this.titleText.setText(getPhrase("JUGADOR 2: ELIGE PERSONAJE"));
       this.selectedIndex = 0;
       this.updateSelection();
     } else {

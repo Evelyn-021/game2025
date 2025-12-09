@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { events } from "./GameEvents.js";
 import { GameState } from "../game/state/GameState.js";
 import { INPUT_ACTIONS } from "../game/utils/InputSystem.js";
+import { getTranslations, getPhrase } from "../services/translations";
+import { ES, EN, PT } from "../enums/languages.js";
 
 export default class Combo {
   constructor(scene, player) {
@@ -219,7 +221,8 @@ getUnifiedDirection() {
       this.delay = Math.max(this.delay - this.speedBoost, this.minDelay);
       
       // Feedback de acierto
-      this.showHitFeedback("¡BIEN!");
+      this.showHitFeedback(getPhrase("¡BIEN!"));
+
       
       // Limpiar input handlers antes del próximo
       this.cleanupInputHandlers();
@@ -345,9 +348,10 @@ getUnifiedDirection() {
     let y = cy - cam.height * 0.28;
 
     const text = this.scene.add.text(
-        x,
-        y,
-        "¡BUEN RITMO!",
+    x,
+    y,
+    getPhrase("¡BUEN RITMO!"),
+
         {
             fontFamily: "PixelFont",
             fontSize: 26,
@@ -396,7 +400,8 @@ getUnifiedDirection() {
   });
 
   // Feedback “FALLO”
-  this.showHitFeedback("¡FALLO!");
+  this.showHitFeedback(getPhrase("¡FALLO!"));
+
 
   // Reset de este jugador
   this.delay = 1200;

@@ -31,6 +31,11 @@ export class Preloader extends Scene {
     this.load.image("nubemorada1", "assets/image/menu/nubemorada1.png");
     this.load.image("nubemorada2", "assets/image/menu/nubemorada2.png");
     
+    // === BANDERAS (TRADUCCIÓN) ===
+    this.load.image("flag_es", "assets/image/flags/ar.png"); // Español (Argentina)
+    this.load.image("flag_en", "assets/image/flags/us.png"); // Inglés
+    this.load.image("flag_pt", "assets/image/flags/br.png"); // Portugués
+
     
     // === TILEMAP ===
     this.load.image('wip4', 'assets/tilemap/wip4.png');          // Tileset llamado suelo

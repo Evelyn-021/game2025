@@ -52,7 +52,7 @@ export class EmpateScene extends Scene {
     this.add.rectangle(W / 2, H * 0.38, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0xffff00);
 
-    this.add.text(W / 2, H * 0.325, "SCORES", {
+    this.add.text(W / 2, H * 0.325, "PUNTAJES", {
       fontFamily: '"Press Start 2P"',
       fontSize: "20px",
       color: "#ffff00",
@@ -61,7 +61,7 @@ export class EmpateScene extends Scene {
     }).setOrigin(0.5);
 
     // === PUNTAJES ===
-    this.add.text(W * 0.33, H * 0.38, `P1: ${p1} DONUTS`, {
+    this.add.text(W * 0.33, H * 0.38, `P1: ${p1} DONAS`, {
       fontFamily: '"Press Start 2P"',
       fontSize: "16px",
       color: "#ff66cc",
@@ -69,7 +69,7 @@ export class EmpateScene extends Scene {
       strokeThickness: 2,
     }).setOrigin(0.5);
 
-    this.add.text(W * 0.67, H * 0.38, `P2: ${p2} DONUTS`, {
+    this.add.text(W * 0.67, H * 0.38, `P2: ${p2} DONAS`, {
       fontFamily: '"Press Start 2P"',
       fontSize: "16px",
       color: "#66ccff",
@@ -78,7 +78,7 @@ export class EmpateScene extends Scene {
     }).setOrigin(0.5);
 
     // === TIEMPO ===
-    this.add.text(W / 2, H * 0.435, `TIME: ${tiempo}s`, {
+    this.add.text(W / 2, H * 0.435, `TIEMPO: ${tiempo}s`, {
       fontFamily: '"Press Start 2P"',
       fontSize: "14px",
       color: "#ffff88",

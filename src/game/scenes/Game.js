@@ -8,7 +8,7 @@ import { ServiceLocator } from "../../systems/ServiceLocator.js";
 import Factory from "../../systems/Factory.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
 import Combo from "../../classes/combo.js";
-
+import { EN, ES, PT } from "../../enums/languages";
 
 export class Game extends Scene {
   constructor() {

@@ -2,6 +2,8 @@ import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
 import Background from "../../classes/Background.js";
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
 
 export class ModeSelect extends Scene {
   constructor() {
@@ -71,7 +73,7 @@ if (menu && !menu.isPlaying) {
   // ======================================================
 // 📝 TÍTULO — ESTILO NEÓN COMO CHARACTER SELECT
 // ======================================================
-const titulo = this.add.text(W / 2, H * 0.12, "SELECCIONA EL MODO DE JUEGO", {
+const titulo = this.add.text(W / 2, H * 0.12, getPhrase("SELECCIONA EL MODO DE JUEGO"),{
   fontFamily: '"Press Start 2P"',
   fontSize: "32px",
   color: "#d6b6ffff",        // rosa pastel interno
@@ -124,7 +126,7 @@ this.tweens.add({
 
     // === Instrucciones con Press Start 2P ===
     this.add.text(W / 2, H * 0.90,
-      "← → PARA NAVEGAR — ENTER PARA SELECCIONAR",
+    getPhrase("← → PARA NAVEGAR, ENTER/A PARA SELECCIONAR"),
       {
         fontFamily: '"Press Start 2P", "Courier New", monospace',
         fontSize: "12px",

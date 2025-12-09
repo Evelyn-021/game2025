@@ -1,6 +1,8 @@
 import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
 
 export class VictoryScene extends Scene {
   constructor() {
@@ -38,7 +40,8 @@ export class VictoryScene extends Scene {
     });
 
     // 🏆 TÍTULO VICTORIA
-    this.add.text(W / 2, 60, "¡VICTORIA!", {
+    this.add.text(W / 2, 60, getPhrase("¡VICTORIA!"), {
+
       fontFamily: '"Press Start 2P"',
       fontSize: 48,
       color: "#ffff00",
@@ -53,32 +56,35 @@ export class VictoryScene extends Scene {
       }
     }).setOrigin(0.5);
 
-    // ==============================
-    // MENSAJE SEGÚN MODO
-    // ==============================
+// ==============================
+// MENSAJE SEGÚN MODO
+// ==============================
+if (GameState.mode === "versus") {
+    const key = winner === "Jugador 1" 
+        ? "¡JUGADOR 1 GANA!" 
+        : "¡JUGADOR 2 GANA!";
 
-    if (GameState.mode === "versus") {
-      // 🟥 VERSUS normal
-      this.add.text(W / 2, 140, `¡${winner.toUpperCase()} GANA!`, {
+    this.add.text(W / 2, 140, getPhrase(key), {
         fontFamily: '"Press Start 2P"',
         fontSize: 28,
         color: "#ffffff",
         stroke: "#0000ff",
         strokeThickness: 5
-      }).setOrigin(0.5);
+    }).setOrigin(0.5);
 
-    } else {
-      // 🟣 COOP — mensaje especial
-      this.add.text(W / 2, 140, "¡AMBOS JUGADORES GANARON!", {
+} else { //COOP
+    this.add.text(W / 2, 140, getPhrase("¡AMBOS JUGADORES GANARON!"), {
         fontFamily: '"Press Start 2P"',
         fontSize: 22,
         color: "#00ff88",
         stroke: "#000",
         strokeThickness: 4
-      }).setOrigin(0.5);
-    }
+    }).setOrigin(0.5);
+}
 
-    this.add.text(W / 2, 180, `TIEMPO: ${tiempo}s`, {
+
+
+    this.add.text(W / 2, 180, `${getPhrase("TIEMPO:")} ${tiempo}s`, {
       fontFamily: '"Press Start 2P"',
       fontSize: 16,
       color: "#00ffff",
@@ -96,7 +102,7 @@ export class VictoryScene extends Scene {
 
 
     // Título tabla
-    this.add.text(W / 2, 270, "PUNTUACIONES", {
+    this.add.text(W / 2, 270, getPhrase("PUNTUACIONES"), {
       fontFamily: '"Press Start 2P"',
       fontSize: 20,
       color: "#ffff00",
@@ -114,7 +120,7 @@ export class VictoryScene extends Scene {
       const nextMeta = GameState.metaDonas; // Próxima meta
 
       // PUNTUACIÓN DEL EQUIPO
-        this.add.text(W / 2, 300, `PUNTUACIÓN: ${teamScore} DONAS`, {
+        this.add.text(W / 2, 300, `${getPhrase("PUNTUACIÓN:")} ${teamScore} ${getPhrase("DONAS")}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 18,
         color: "#ff66cc",
@@ -123,7 +129,7 @@ export class VictoryScene extends Scene {
       }).setOrigin(0.5);
 
       // META ALCANZADA
-      this.add.text(W / 2, 330, `META ALCANZADA: ${currentMeta} DONAS`, {
+      this.add.text(W / 2, 330, `${getPhrase("META ALCANZADA:")} ${currentMeta} ${getPhrase("DONAS")}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 16,
         color: "#00ff88",
@@ -132,7 +138,7 @@ export class VictoryScene extends Scene {
       }).setOrigin(0.5);
 
       // PRÓXIMA META
-      this.add.text(W / 2, 360, `PRÓXIMA META: ${nextMeta} DONAS`, {
+      this.add.text(W / 2, 360, `${getPhrase("PRÓXIMA META:")} ${nextMeta} ${getPhrase("DONAS")}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 16,
         color: "#ffaa00",
@@ -149,7 +155,7 @@ export class VictoryScene extends Scene {
         localStorage.setItem("bestTeamScore", JSON.stringify(best));
       }
 
-        this.add.text(W / 2, 395, `RÉCORD: ${best.donas} DONAS`, {
+        this.add.text(W / 2, 395, `${getPhrase("RÉCORD:")} ${best.donas} ${getPhrase("DONAS")}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: 14,
         color: "#ffaa00",
@@ -164,14 +170,14 @@ export class VictoryScene extends Scene {
       // ============================
 
       const jugadores = [
-        { nombre: "JUGADOR 1", color: "#ff66cc", donas: p1 },
-        { nombre: "JUGADOR 2", color: "#66ccff", donas: p2 }
+        { nombre: getPhrase("JUGADOR 1"), color: "#ff66cc", donas: p1 },
+        { nombre: getPhrase("JUGADOR 2"), color: "#66ccff", donas: p2 }
       ].sort((a, b) => b.donas - a.donas);
 
       let y = 310;
       jugadores.forEach((p, i) => {
         const medal = i === 0 ? "🥇" : "🥈";
-        const rank = i === 0 ? "1RO" : "2DO";
+        const rank = i === 0 ? getPhrase("1RO") : getPhrase("2DO");
         
         this.add.text(W / 2 - 200, y, `${medal} ${rank}`, {
           fontFamily: '"Press Start 2P"',
@@ -189,7 +195,7 @@ export class VictoryScene extends Scene {
           strokeThickness: 2
         }).setOrigin(0.5);
 
-        this.add.text(W / 2 + 200, y, `${p.donas} DONAS`, {
+        this.add.text(W / 2 + 200, y, `${p.donas} ${getPhrase("DONAS")}`, {
           fontFamily: '"Press Start 2P"',
           fontSize: 16,
           color: "#ffff88",
@@ -206,26 +212,22 @@ export class VictoryScene extends Scene {
 
       const currentBest = jugadores[0].donas;
       
-      if (currentBest > bestRecord.donas) {
-        bestRecord = { winner, donas: currentBest };
-        localStorage.setItem("bestRecord", JSON.stringify(bestRecord));
+      let recordY = 400;
 
-        this.add.text(W / 2, 400, "¡NUEVO RÉCORD MUNDIAL!", {
-          fontFamily: '"Press Start 2P"',
-          fontSize: 16,
-          color: "#ff0000",
-          stroke: "#ffff00",
-          strokeThickness: 4
-        }).setOrigin(0.5);
-      }
 
-      this.add.text(W / 2, 395, `RÉCORD: ${bestRecord.winner} - ${bestRecord.donas}`, {
-        fontFamily: '"Press Start 2P"',
-        fontSize: 14,
-        color: "#ffaa00",
-        stroke: "#8b4513",
-        strokeThickness: 3
-      }).setOrigin(0.5);
+// 🟦 RÉCORD NORMAL — SIEMPRE SE DIBUJA
+this.add.text(
+  W / 2,
+  recordY,
+  `${getPhrase("RÉCORD:")} ${bestRecord.winner} - ${bestRecord.donas}`,
+  {
+    fontFamily: '"Press Start 2P"',
+    fontSize: 14,
+    color: "#ff0000",
+    stroke: "#ffff00",
+    strokeThickness: 3,
+  }
+).setOrigin(0.5);
     }
 
     // ==============================
@@ -235,7 +237,7 @@ export class VictoryScene extends Scene {
 if (GameState.mode === "coop") {
     this.buttons = [];
 
-    this.continuarButton = this.add.text(W / 2, 500, "SEGUIR JUGANDO", {
+    this.continuarButton = this.add.text(W / 2, 500, getPhrase("SEGUIR JUGANDO"), {
         fontFamily: '"Press Start 2P"',
         fontSize: "20px",
         color: "#33ff33",
@@ -243,7 +245,7 @@ if (GameState.mode === "coop") {
         strokeThickness: 4,
     }).setOrigin(0.5).setInteractive();
 
-    this.menuButton = this.add.text(W / 2, 560, "MENÚ PRINCIPAL", {
+    this.menuButton = this.add.text(W / 2, 560, getPhrase("MENÚ PRINCIPAL"), {
         fontFamily: '"Press Start 2P"',
         fontSize: "24px",
         color: "#3366ff",
@@ -257,7 +259,7 @@ if (GameState.mode === "coop") {
     // VERSUS
     this.buttons = [];
 
-    this.revanchaButton = this.add.text(W / 2, 500, "REVANCHA", {
+    this.revanchaButton = this.add.text(W / 2, 500, getPhrase("REVANCHA"), {
         fontFamily: '"Press Start 2P"',
         fontSize: "24px",
         color: "#ff33ff",
@@ -265,7 +267,7 @@ if (GameState.mode === "coop") {
         strokeThickness: 4,
     }).setOrigin(0.5).setInteractive();
 
-    this.menuButton = this.add.text(W / 2, 560, "MENÚ PRINCIPAL", {
+    this.menuButton = this.add.text(W / 2, 560, getPhrase("MENÚ PRINCIPAL"), {
         fontFamily: '"Press Start 2P"',
         fontSize: "24px",
         color: "#3366ff",

@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { events } from "../../classes/GameEvents.js";
 import { GameState } from "../state/GameState.js";
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
 
 export class HUDScene extends Phaser.Scene {
   constructor() {
@@ -20,8 +22,10 @@ export class HUDScene extends Phaser.Scene {
     // TÍTULO + TIMER
     // ========================================
 
-    const modoTexto =
-      GameState.mode === "coop" ? "MODO COOPERATIVO" : "MODO VERSUS";
+    const modoTexto = GameState.mode === "coop"
+  ? getPhrase("MODO COOPERATIVO")
+  : getPhrase("MODO VERSUS");
+
 
     this.add.text(W / 2, 15, modoTexto, {
       fontFamily: '"Press Start 2P"',
@@ -34,7 +38,7 @@ export class HUDScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     // TIMER
-    this.timeLeft = 120;
+    this.timeLeft = 10;
 
     this.timerText = this.add.text(W / 2, 50, "02:00", {
       fontFamily: '"Press Start 2P"',
