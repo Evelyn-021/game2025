@@ -215,19 +215,40 @@ if (GameState.mode === "versus") {
       let recordY = 400;
 
 
-// 🟦 RÉCORD NORMAL — SIEMPRE SE DIBUJA
+// ============================
+// RÉCORD DEL GANADOR — SIMPLE
+// ============================
+
+const ganador = winner === "Jugador 1" ? 1 : 2;
+const ganadorNombre = ganador === 1 
+    ? getPhrase("JUGADOR 1") 
+    : getPhrase("JUGADOR 2");
+
+let best = localStorage.getItem("bestVersusRecord");
+best = best ? JSON.parse(best) : { jugador: "JUGADOR 1", donas: 0 };
+
+// si se superó el récord, guardar
+if ((ganador === 1 && p1 > best.donas) || (ganador === 2 && p2 > best.donas)) {
+    const nuevoValor = ganador === 1 ? p1 : p2;
+    best = { jugador: ganadorNombre, donas: nuevoValor };
+    localStorage.setItem("bestVersusRecord", JSON.stringify(best));
+}
+
+// mostrar récord
 this.add.text(
-  W / 2,
-  recordY,
-  `${getPhrase("RÉCORD:")} ${bestRecord.winner} - ${bestRecord.donas}`,
-  {
-    fontFamily: '"Press Start 2P"',
-    fontSize: 14,
-    color: "#ff0000",
-    stroke: "#ffff00",
-    strokeThickness: 3,
-  }
+    W / 2,
+    400,
+    `${getPhrase("RÉCORD:")} ${best.jugador} - ${best.donas}`,
+    {
+        fontFamily: '"Press Start 2P"',
+        fontSize: 18,
+        color: "#ffb300",
+        stroke: "#000",
+        strokeThickness: 4
+    }
 ).setOrigin(0.5);
+
+
     }
 
     // ==============================
