@@ -2,6 +2,10 @@ import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
 
+// ⭐ TRADUCILA
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
+
 export class GameOver extends Scene {
   constructor() {
     super("GameOver");
@@ -40,9 +44,9 @@ export class GameOver extends Scene {
     this.add.rectangle(W / 2, H / 2, W, H, 0x2d1b69).setAlpha(0.85);
 
     // =====================================================
-    // TÍTULO
+    // TÍTULO — GAME OVER
     // =====================================================
-    this.add.text(W / 2, H * 0.10, "¡FIN DEL JUEGO!", {
+    this.add.text(W / 2, H * 0.10, getPhrase("¡FIN DEL JUEGO!"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "48px",
       color: "#ff3366",
@@ -55,7 +59,15 @@ export class GameOver extends Scene {
     // =====================================================
 
     if (GameState.mode === "versus") {
-      this.add.text(W / 2, H * 0.19, `${winner.toUpperCase()} GANA!`, {
+      let winnerMessage = "";
+
+      if (winner === "Jugador 1") {
+        winnerMessage = getPhrase("¡JUGADOR 1 GANA!");
+      } else if (winner === "Jugador 2") {
+        winnerMessage = getPhrase("¡JUGADOR 2 GANA!");
+      }
+
+      this.add.text(W / 2, H * 0.19, winnerMessage, {
         fontFamily: '"Press Start 2P"',
         fontSize: "22px",
         color: "#ffff00",
@@ -65,7 +77,7 @@ export class GameOver extends Scene {
     }
 
     if (GameState.mode === "coop") {
-      this.add.text(W / 2, H * 0.19, "AMBOS JUGADORES PERDIERON", {
+      this.add.text(W / 2, H * 0.19, getPhrase("AMBOS JUGADORES PERDIERON"), {
         fontFamily: '"Press Start 2P"',
         fontSize: "22px",
         color: "#ff6666",
@@ -81,7 +93,7 @@ export class GameOver extends Scene {
     this.add.rectangle(W / 2, H * 0.40, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0x00ffff);
 
-    this.add.text(W / 2, H * 0.355, "PUNTAJE FINAL", {
+    this.add.text(W / 2, H * 0.320, getPhrase("PUNTAJE FINAL"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "20px",
       color: "#00ffff",
@@ -96,8 +108,11 @@ export class GameOver extends Scene {
 
       const teamScore = p1 + p2;
 
-      // TEAM SCORE
-      this.add.text(W / 2, H * 0.40, `PUNTAJE DE EQUIPO: ${teamScore} DONAS`, {
+      // ⭐ TEXTO CORRECTAMENTE TRADUCIDO
+      const teamScoreText =
+        `${getPhrase("PUNTAJE DE EQUIPO:")} ${teamScore} ${getPhrase("DONAS")}`;
+
+      this.add.text(W / 2, H * 0.40, teamScoreText, {
         fontFamily: '"Press Start 2P"',
         fontSize: "16px",
         color: "#ff66cc",
@@ -105,7 +120,6 @@ export class GameOver extends Scene {
         strokeThickness: 2,
       }).setOrigin(0.5);
 
-      // BEST TEAM SCORE (seguro)
       let best = localStorage.getItem("bestTeamScore");
       best = best ? JSON.parse(best) : { donas: 0 };
 
@@ -114,7 +128,10 @@ export class GameOver extends Scene {
         localStorage.setItem("bestTeamScore", JSON.stringify(best));
       }
 
-      this.add.text(W / 2, H * 0.435, `MEJOR PUNTAJE DE EQUIPO: ${best.donas} DONAS`, {
+      const bestTeamText =
+        `${getPhrase("MEJOR PUNTAJE DE EQUIPO")}: ${best.donas} ${getPhrase("DONAS")}`;
+
+      this.add.text(W / 2, H * 0.435, bestTeamText, {
         fontFamily: '"Press Start 2P"',
         fontSize: "14px",
         color: "#ffaa00",
@@ -128,7 +145,10 @@ export class GameOver extends Scene {
       // VERSUS — SCORE INDIVIDUAL
       // =====================================================
 
-      this.add.text(W * 0.33, H * 0.40, `P1: ${p1} DONAS`, {
+      const p1Text =
+        `${getPhrase("P1")}: ${p1} ${getPhrase("DONAS")}`;
+
+      this.add.text(W * 0.33, H * 0.40, p1Text, {
         fontFamily: '"Press Start 2P"',
         fontSize: "16px",
         color: "#ff66cc",
@@ -136,7 +156,10 @@ export class GameOver extends Scene {
         strokeThickness: 2,
       }).setOrigin(0.5);
 
-      this.add.text(W * 0.67, H * 0.40, `P2: ${p2} DONAS`, {
+      const p2Text =
+        `${getPhrase("P2")}: ${p2} ${getPhrase("DONAS")}`;
+
+      this.add.text(W * 0.67, H * 0.40, p2Text, {
         fontFamily: '"Press Start 2P"',
         fontSize: "16px",
         color: "#66ccff",
@@ -144,7 +167,10 @@ export class GameOver extends Scene {
         strokeThickness: 2,
       }).setOrigin(0.5);
 
-      this.add.text(W / 2, H * 0.435, `TIEMPO: ${tiempo}s`, {
+      const timeText =
+        `${getPhrase("TIEMPO:")} ${tiempo}s`;
+
+      this.add.text(W / 2, H * 0.435, timeText, {
         fontFamily: '"Press Start 2P"',
         fontSize: "14px",
         color: "#ffff88",
@@ -152,7 +178,10 @@ export class GameOver extends Scene {
         strokeThickness: 2,
       }).setOrigin(0.5);
 
-      // BEST RECORD VERSUS
+      // =====================================================
+      // MEJOR — BEST RECORD
+      // =====================================================
+
       let best = localStorage.getItem("bestRecord");
       best = best ? JSON.parse(best) : { winner: "NOBODY", donas: 0 };
 
@@ -163,7 +192,10 @@ export class GameOver extends Scene {
         localStorage.setItem("bestRecord", JSON.stringify(best));
       }
 
-      this.add.text(W / 2, H * 0.50, `MEJOR: ${best.winner} - ${best.donas} DONAS`, {
+      const bestWinnerText =
+        `${getPhrase("MEJOR:")} ${getPhrase(best.winner.toUpperCase())} - ${best.donas} ${getPhrase("DONAS")}`;
+
+      this.add.text(W / 2, H * 0.50, bestWinnerText, {
         fontFamily: '"Press Start 2P"',
         fontSize: "14px",
         color: "#ffaa00",
@@ -175,11 +207,10 @@ export class GameOver extends Scene {
     // =====================================================
     // CONTINUAR
     // =====================================================
-
     this.add.rectangle(W / 2, H * 0.68, 400, 150, 0x000000, 0.65)
       .setStrokeStyle(3, 0x00ff00);
 
-    this.add.text(W / 2, H * 0.62, "¿CONTINUAR?", {
+    this.add.text(W / 2, H * 0.62, getPhrase("¿CONTINUAR?"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "20px",
       color: "#00ff00",
@@ -191,7 +222,7 @@ export class GameOver extends Scene {
     // BOTONES
     // =====================================================
 
-    this.revanchaButton = this.add.text(W / 2, H * 0.68, "REVANCHA", {
+    this.revanchaButton = this.add.text(W / 2, H * 0.68, getPhrase("REVANCHA"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "24px",
       color: "#ff33ff",
@@ -199,7 +230,7 @@ export class GameOver extends Scene {
       strokeThickness: 4,
     }).setOrigin(0.5).setInteractive();
 
-    this.menuButton = this.add.text(W / 2, H * 0.73, "MENU", {
+    this.menuButton = this.add.text(W / 2, H * 0.73, getPhrase("MENU"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "18px",
       color: "#3366ff",
@@ -241,9 +272,6 @@ export class GameOver extends Scene {
     }
   }
 
-  // =====================================================
-  // SELECCIÓN DE BOTONES
-  // =====================================================
   updateSelection() {
     this.buttons.forEach((btn, index) => {
       this.tweens.killTweensOf(btn);
@@ -272,13 +300,9 @@ export class GameOver extends Scene {
     else this.selectMenu();
   }
 
-  // =====================================================
-  // ACCIONES DE BOTONES
-  // =====================================================
   selectRevancha() {
     this.scene.stop("HUDScene");
 
-    // Reset parcial
     GameState.player1.donasRecolectadas = 0;
     GameState.player2.donasRecolectadas = 0;
 
