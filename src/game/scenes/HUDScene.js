@@ -38,7 +38,7 @@ export class HUDScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     // TIMER
-    this.timeLeft = 120;
+    this.timeLeft = 10;
 
     this.timerText = this.add.text(W / 2, 50, "02:00", {
       fontFamily: '"Press Start 2P"',

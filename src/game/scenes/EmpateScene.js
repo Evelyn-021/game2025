@@ -1,6 +1,8 @@
 import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
+import { getTranslations, getPhrase } from "../../services/translations";
+import { ES, EN, PT } from "../../enums/languages";
 
 export class EmpateScene extends Scene {
   constructor() {
@@ -31,89 +33,111 @@ export class EmpateScene extends Scene {
     this.add.rectangle(W / 2, H / 2, W, H, 0x2d1b69, 0.85);
 
     // === TÍTULO ===
-    this.add.text(W / 2, H * 0.10, "EMPATE", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "48px",
-      color: "#ffcc00",
-      stroke: "#000",
-      strokeThickness: 6,
-    }).setOrigin(0.5);
+    this.add
+      .text(W / 2, H * 0.10, getPhrase("EMPATE"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "48px",
+        color: "#ffcc00",
+        stroke: "#000",
+        strokeThickness: 6
+      })
+      .setOrigin(0.5);
 
     // === MENSAJE ===
-    this.add.text(W / 2, H * 0.18, "AMBOS JUGADORES EMPATAN", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "18px",
-      color: "#ffffff",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.add
+      .text(W / 2, H * 0.18, getPhrase("AMBOS JUGADORES EMPATAN"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "18px",
+        color: "#ffffff",
+        stroke: "#000",
+        strokeThickness: 3
+      })
+      .setOrigin(0.5);
 
     // === MARCO PUNTOS ===
-    this.add.rectangle(W / 2, H * 0.38, W * 0.60, 150, 0x000000, 0.55)
+    this.add
+      .rectangle(W / 2, H * 0.38, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0xffff00);
 
-    this.add.text(W / 2, H * 0.325, "PUNTAJES", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "20px",
-      color: "#ffff00",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.add
+      .text(W / 2, H * 0.325, getPhrase("PUNTAJES"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "20px",
+        color: "#ffff00",
+        stroke: "#000",
+        strokeThickness: 3
+      })
+      .setOrigin(0.5);
 
     // === PUNTAJES ===
-    this.add.text(W * 0.33, H * 0.38, `P1: ${p1} DONAS`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "16px",
-      color: "#ff66cc",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+    this.add
+      .text(W * 0.33, H * 0.38, `${getPhrase("P1")}: ${p1} ${getPhrase("DONAS")}`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "16px",
+        color: "#ff66cc",
+        stroke: "#000",
+        strokeThickness: 2
+      })
+      .setOrigin(0.5);
 
-    this.add.text(W * 0.67, H * 0.38, `P2: ${p2} DONAS`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "16px",
-      color: "#66ccff",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+    this.add
+      .text(W * 0.67, H * 0.38, `${getPhrase("P2")}: ${p2} ${getPhrase("DONAS")}`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "16px",
+        color: "#66ccff",
+        stroke: "#000",
+        strokeThickness: 2
+      })
+      .setOrigin(0.5);
 
     // === TIEMPO ===
-    this.add.text(W / 2, H * 0.435, `TIEMPO: ${tiempo}s`, {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "14px",
-      color: "#ffff88",
-      stroke: "#000",
-      strokeThickness: 2,
-    }).setOrigin(0.5);
+    this.add
+      .text(W / 2, H * 0.435, `${getPhrase("TIEMPO:")} ${tiempo}s`, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "14px",
+        color: "#ffff88",
+        stroke: "#000",
+        strokeThickness: 2
+      })
+      .setOrigin(0.5);
 
     // === CONTENEDOR BOTONES ===
-    this.add.rectangle(W / 2, H * 0.68, 400, 150, 0x000000, 0.65)
+    this.add
+      .rectangle(W / 2, H * 0.68, 400, 150, 0x000000, 0.65)
       .setStrokeStyle(3, 0x00ff00);
 
-    this.add.text(W / 2, H * 0.62, "¿CONTINUAR?", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "20px",
-      color: "#00ff00",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    this.add
+      .text(W / 2, H * 0.62, getPhrase("¿CONTINUAR?"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "20px",
+        color: "#00ff00",
+        stroke: "#000",
+        strokeThickness: 3
+      })
+      .setOrigin(0.5);
 
     // === BOTONES ===
-    this.revanchaButton = this.add.text(W / 2, H * 0.68, "REVANCHA", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "24px",
-      color: "#ff33ff",
-      stroke: "#000",
-      strokeThickness: 4
-    }).setOrigin(0.5).setInteractive();
+    this.revanchaButton = this.add
+      .text(W / 2, H * 0.68, getPhrase("REVANCHA"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "24px",
+        color: "#ff33ff",
+        stroke: "#000",
+        strokeThickness: 4
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
-    this.menuButton = this.add.text(W / 2, H * 0.73, "MENU", {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "18px",
-      color: "#3366ff",
-      stroke: "#000",
-      strokeThickness: 3
-    }).setOrigin(0.5).setInteractive();
+    this.menuButton = this.add
+      .text(W / 2, H * 0.73, getPhrase("MENU"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "18px",
+        color: "#3366ff",
+        stroke: "#000",
+        strokeThickness: 3
+      })
+      .setOrigin(0.5)
+      .setInteractive();
 
     this.buttons = [this.revanchaButton, this.menuButton];
     this.selectedIndex = 0;
@@ -126,7 +150,6 @@ export class EmpateScene extends Scene {
   }
 
   update() {
-    // === Inputs del InputSystem ===
     this.inputSystem.update();
 
     if (this.inputSystem.isJustPressed(INPUT_ACTIONS.UP)) {
@@ -139,7 +162,7 @@ export class EmpateScene extends Scene {
       this.updateSelection();
     }
 
-    // Confirmar con cualquier botón del joystick
+    // Confirmar con cualquier botón
     if (
       this.inputSystem.isJustPressed(INPUT_ACTIONS.NORTH) ||
       this.inputSystem.isJustPressed(INPUT_ACTIONS.SOUTH) ||
@@ -155,9 +178,7 @@ export class EmpateScene extends Scene {
       this.tweens.killTweensOf(btn);
 
       if (index === this.selectedIndex) {
-        btn.setColor("#ffffff")
-          .setStroke("#ffff00", 5)
-          .setScale(1.1);
+        btn.setColor("#ffffff").setStroke("#ffff00", 5).setScale(1.1);
 
         this.tweens.add({
           targets: btn,
@@ -167,8 +188,7 @@ export class EmpateScene extends Scene {
           repeat: -1
         });
       } else {
-        btn.setScale(1)
-          .setStroke("#000", 3);
+        btn.setScale(1).setStroke("#000", 3);
         btn.setColor(index === 0 ? "#ff33ff" : "#3366ff");
       }
     });
