@@ -36,7 +36,12 @@ export class Preloader extends Scene {
     this.load.image("flag_en", "assets/image/flags/us.png"); // Inglés
     this.load.image("flag_pt", "assets/image/flags/br.png"); // Portugués
 
-    
+    //ICONS (LOGIN)
+    this.load.image("iconAnon", "assets/image/icons/persona.png");
+    this.load.image("iconGitHub", "assets/image/icons/github.png");
+    this.load.image("iconGoogle", "assets/image/icons/google.png");
+
+
     // === TILEMAP ===
     this.load.image('wip4', 'assets/tilemap/wip4.png');          // Tileset llamado suelo
     this.load.image("wip5", "assets/tilemap/wip5.png");
@@ -144,7 +149,7 @@ this.load.image("cake_valley_sugar-stars", "assets/image/escenario/cake_valley_s
 
     // Pequeño retraso antes de pasar al menú (opcional)
     this.time.delayedCall(1000, () => {
-      this.scene.start('MainMenu');
+      this.scene.start('Login');
     });
   }
 }
