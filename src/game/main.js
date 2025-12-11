@@ -12,6 +12,7 @@ import { HUDScene } from './scenes/HUDScene.js';
 import { GameOver } from './scenes/GameOver.js';
 import { VictoryScene } from "./scenes/VictoryScene.js";
 import { EmpateScene } from "./scenes/EmpateScene.js";
+import Scores from "./scenes/Scores.js";
 
 const config = {
   type: Phaser.AUTO,
@@ -57,6 +58,7 @@ const config = {
     GameOver,
     VictoryScene,
     EmpateScene,
+    Scores,
   ],
 
   dom: {

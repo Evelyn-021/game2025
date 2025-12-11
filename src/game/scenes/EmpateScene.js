@@ -139,7 +139,20 @@ export class EmpateScene extends Scene {
       .setOrigin(0.5)
       .setInteractive();
 
-    this.buttons = [this.revanchaButton, this.menuButton];
+      // Crear botón Scores
+    this.scoresButton = this.add
+      .text(W / 2, H * 0.78, getPhrase("SCORES"), {
+        fontFamily: '"Press Start 2P"',
+        fontSize: "18px",
+        color: "#ffcc00",
+        stroke: "#000",
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setInteractive();
+
+
+    this.buttons = [this.revanchaButton, this.menuButton, this.scoresButton];
     this.selectedIndex = 0;
 
     this.updateSelection();
@@ -147,6 +160,8 @@ export class EmpateScene extends Scene {
     // === CLICK CON MOUSE ===
     this.revanchaButton.on("pointerdown", () => this.selectRevancha());
     this.menuButton.on("pointerdown", () => this.selectMenu());
+    this.scoresButton.on("pointerdown", () => this.selectScores());
+
   }
 
   update() {
@@ -195,9 +210,15 @@ export class EmpateScene extends Scene {
   }
 
   confirmSelection() {
-    if (this.selectedIndex === 0) this.selectRevancha();
-    else this.selectMenu();
+  if (this.selectedIndex === 0) {
+    this.selectRevancha();
+  } else if (this.selectedIndex === 1) {
+    this.selectMenu();
+  } else if (this.selectedIndex === 2) {
+    this.selectScores();
   }
+}
+
 
   selectRevancha() {
     this.scene.stop("HUDScene");
@@ -212,4 +233,9 @@ export class EmpateScene extends Scene {
     GameState.reset();
     this.scene.start("MainMenu");
   }
+  
+  selectScores() {
+  this.scene.start("Scores");
+}
+
 }

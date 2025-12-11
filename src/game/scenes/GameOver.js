@@ -93,7 +93,7 @@ export class GameOver extends Scene {
     this.add.rectangle(W / 2, H * 0.40, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0x00ffff);
 
-    this.add.text(W / 2, H * 0.320, getPhrase("PUNTAJE FINAL"), {
+    this.add.text(W / 2, H * 0.355, getPhrase("PUNTAJE FINAL"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "20px",
       color: "#00ffff",
