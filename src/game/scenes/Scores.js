@@ -242,7 +242,7 @@ export default class Scores extends Scene {
         // FOOTER INFORMATIVO
         // ================================
         const H = this.scale.height;
-        this.add.text(W / 2, H - 120, getPhrase("Solo se muestra el mejor score por jugador"), {
+        this.add.text(W / 2, H - 120, getPhrase("Solo se muestra el mejor puntaje por jugador"), {
             fontFamily: '"Press Start 2P"',
             fontSize: "10px",
             color: "#888888",

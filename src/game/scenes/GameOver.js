@@ -93,7 +93,7 @@ export class GameOver extends Scene {
     this.add.rectangle(W / 2, H * 0.40, W * 0.60, 150, 0x000000, 0.55)
       .setStrokeStyle(4, 0x00ffff);
 
-    this.add.text(W / 2, H * 0.355, getPhrase("PUNTAJE FINAL"), {
+    this.add.text(W / 2, H * 0.320, getPhrase("PUNTAJE FINAL"), {
       fontFamily: '"Press Start 2P"',
       fontSize: "20px",
       color: "#00ffff",
@@ -192,10 +192,10 @@ export class GameOver extends Scene {
         localStorage.setItem("bestRecord", JSON.stringify(best));
       }
 
-      const bestWinnerText =
-        `${getPhrase("MEJOR:")} ${getPhrase(best.winner.toUpperCase())} - ${best.donas} ${getPhrase("DONAS")}`;
-
-      this.add.text(W / 2, H * 0.50, bestWinnerText, {
+      this.add.text(
+  W / 2, 
+  H * 0.50, 
+  `${getPhrase("MEJOR:")} ${getPhrase(best.winner.toUpperCase())} - ${best.donas} ${getPhrase("DONAS")}`, {
         fontFamily: '"Press Start 2P"',
         fontSize: "14px",
         color: "#ffaa00",
@@ -205,46 +205,57 @@ export class GameOver extends Scene {
     }
 
     // =====================================================
-    // CONTINUAR
-    // =====================================================
-    this.add.rectangle(W / 2, H * 0.68, 400, 150, 0x000000, 0.65)
-      .setStrokeStyle(3, 0x00ff00);
+// CONTINUAR — PANEL
+// =====================================================
+this.add.rectangle(W / 2, H * 0.72, 420, 200, 0x000000, 0.65)
+  .setStrokeStyle(3, 0x00ff00);
 
-    this.add.text(W / 2, H * 0.62, getPhrase("¿CONTINUAR?"), {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "20px",
-      color: "#00ff00",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+this.add.text(W / 2, H * 0.60, getPhrase("¿CONTINUAR?"), {
+  fontFamily: '"Press Start 2P"',
+  fontSize: "22px",
+  color: "#00ff00",
+  stroke: "#000",
+  strokeThickness: 3,
+}).setOrigin(0.5);
 
-    // =====================================================
-    // BOTONES
-    // =====================================================
+// =====================================================
+// BOTONES ORDENADOS (REVANCHA / VER PUNTAJES / MENÚ)
+// =====================================================
+this.revanchaButton = this.add.text(W / 2, H * 0.67, getPhrase("REVANCHA"), {
+  fontFamily: '"Press Start 2P"',
+  fontSize: "24px",
+  color: "#ff33ff",
+  stroke: "#000",
+  strokeThickness: 4,
+}).setOrigin(0.5).setInteractive();
 
-    this.revanchaButton = this.add.text(W / 2, H * 0.68, getPhrase("REVANCHA"), {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "24px",
-      color: "#ff33ff",
-      stroke: "#000",
-      strokeThickness: 4,
-    }).setOrigin(0.5).setInteractive();
+this.scoresButton = this.add.text(W / 2, H * 0.75, getPhrase("VER PUNTAJES"), {
+  fontFamily: '"Press Start 2P"',
+  fontSize: "20px",
+  color: "#ffff00",
+  stroke: "#000",
+  strokeThickness: 3,
+}).setOrigin(0.5).setInteractive();
 
-    this.menuButton = this.add.text(W / 2, H * 0.73, getPhrase("MENU"), {
-      fontFamily: '"Press Start 2P"',
-      fontSize: "18px",
-      color: "#3366ff",
-      stroke: "#000",
-      strokeThickness: 3,
-    }).setOrigin(0.5).setInteractive();
+this.menuButton = this.add.text(W / 2, H * 0.85, getPhrase("MENÚ PRINCIPAL"), {
+  fontFamily: '"Press Start 2P"',
+  fontSize: "20px",
+  color: "#3366ff",
+  stroke: "#000",
+  strokeThickness: 3,
+}).setOrigin(0.5).setInteractive();
 
-    this.buttons = [this.revanchaButton, this.menuButton];
-    this.selectedIndex = 0;
-    this.updateSelection();
+// ⭐ LOS 3 BOTONES AHORA SON SELECCIONABLES
+this.buttons = [this.revanchaButton, this.scoresButton, this.menuButton];
+this.selectedIndex = 0;
+this.updateSelection();
 
-    this.revanchaButton.on("pointerdown", () => this.selectRevancha());
-    this.menuButton.on("pointerdown", () => this.selectMenu());
-  }
+// Eventos
+this.revanchaButton.on("pointerdown", () => this.selectRevancha());
+this.scoresButton.on("pointerdown", () => this.scene.start("Scores"));
+this.menuButton.on("pointerdown", () => this.selectMenu());
+
+}
 
   // =====================================================
   // INPUT
@@ -296,9 +307,15 @@ export class GameOver extends Scene {
   }
 
   confirmSelection() {
-    if (this.selectedIndex === 0) this.selectRevancha();
-    else this.selectMenu();
+  if (this.selectedIndex === 0) {
+    this.selectRevancha();
+  } else if (this.selectedIndex === 1) {
+    this.scene.start("Scores");
+  } else {
+    this.selectMenu();
   }
+}
+
 
   selectRevancha() {
     this.scene.stop("HUDScene");
