@@ -1,3 +1,6 @@
+// El combo funciona como un sistema independiente con estados propios (implicito)
+// (activo, esperando input, completado o fallido).
+//maquina de estados implicita (manejada con flags -true o false-)
 import Phaser from "phaser";
 import { events } from "./GameEvents.js";
 import { GameState } from "../game/state/GameState.js";
@@ -27,7 +30,7 @@ export default class Combo {
 
   start() {
     if (this.active) return;
-    this.active = true;
+    this.active = true; //flag de combo activo
     this.player.canMove = false;
 
     this.comboLength = Math.min(6, this.comboLength + 0);

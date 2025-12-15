@@ -1,3 +1,10 @@
+//GameState → Singleton: unico objeto global (guarda estado global del juego)
+// del juego para que esté accesible en todas las escenas
+//el game state es un objeto grande guarda info como:
+//- modo de juego (coop o versus)
+//- vidas
+//-estadisticas
+
 export const GameState = {
   mode: "coop", // "coop" o "versus"
 

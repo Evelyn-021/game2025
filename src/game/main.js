@@ -1,5 +1,5 @@
 import Phaser, { AUTO } from 'phaser';
-
+//defino las escenas del juego y cómo arranca todo
 // Escenas base
 import { Preloader } from './scenes/Preloader.js';
 import Login from "/src/game/scenes/Login.js";

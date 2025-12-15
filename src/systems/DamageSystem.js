@@ -1,3 +1,11 @@
+//DamageSystem es un servicio:
+
+//No representa una entidad del juego (no es Player ni Enemy)
+
+//Encapsula una responsabilidad concreta: manejar el daño
+//Centraliza reglas complejas:
+// (coop, versus, invulnerabilidad, HUD, eventos)
+
 import { GameState } from "../game/state/GameState.js";
 import { events } from "../classes/GameEvents.js";
 import { ServiceLocator } from "./ServiceLocator.js";
@@ -22,7 +30,7 @@ if (GameState.mode === "coop") {
     // Quitar vida compartida
     GameState.sharedLives--;
 
-    // HUD
+    // HUD ACTUALIZA VIDAS
     events.emit("update-life", { playerID, vidas: GameState.sharedLives });
 
 

@@ -1,3 +1,7 @@
+//Clase Player
+// movimientos
+// Eventos: daño, recolectar donas (comunicación con GameEvents)
+//ej: Gameplay → Estado → Evento → HUD
 import Phaser from "phaser";
 import { events } from "./GameEvents.js";
 import { GameState } from "../game/state/GameState.js";

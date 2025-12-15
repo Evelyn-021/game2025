@@ -1,3 +1,8 @@
+//Función getPhrase(key),
+// Carga de traducciones,
+// Almacenamiento en JSON
+//Pido una frase por su clave y Traducila me devuelve la traducción
+
 import { DE, EN, ES, PT } from "../enums/languages";
 
 const PROJECT_ID = "a50d956b-7786-427b-8d0d-6a5464018003";

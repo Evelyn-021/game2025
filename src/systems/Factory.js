@@ -1,3 +1,7 @@
+//Crear enemigos, recolectables, procesar objetos del mapa
+//Uso este archivo para no repetir código al crear
+// elementos del escenario
+
 import Recolectables from "../classes/recolectables.js";
 import Enemy from "../classes/Enemy.js";
 import { GameState } from "../game/state/GameState.js";

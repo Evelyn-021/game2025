@@ -1,3 +1,6 @@
+// Servicio de audio compartido (service locator): 
+// centraliza música y efectos del juego.
+
 export default class AudioManager {
   constructor(scene) {
     this.scene = scene;

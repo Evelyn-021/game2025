@@ -1,3 +1,7 @@
+
+// Sistema de recolectables: crea donas y cerezas, maneja colisiones,
+// actualiza GameState y emite eventos al HUD. (detecta colisiones y emite eventos)
+
 import Phaser from "phaser";
 import { GameState } from "../game/state/GameState.js";
 import { events } from "./GameEvents.js";
@@ -130,15 +134,15 @@ if (cajaAsignada) {
       // SUMA DE DONAS (REAL)
       // ============================
       // 🛡 Sanitizar
-if (isNaN(GameState.player1.donasRecolectadas)) GameState.player1.donasRecolectadas = 0;
-if (isNaN(GameState.player2.donasRecolectadas)) GameState.player2.donasRecolectadas = 0;
+      if (isNaN(GameState.player1.donasRecolectadas)) GameState.player1.donasRecolectadas = 0;
+      if (isNaN(GameState.player2.donasRecolectadas)) GameState.player2.donasRecolectadas = 0;
 
-// Ahora sí sumamos
-if (jugador.id === 1) {
-    GameState.player1.donasRecolectadas++;
-} else {
-    GameState.player2.donasRecolectadas++;
-}
+      // Ahora sí sumamos
+      if (jugador.id === 1) {
+          GameState.player1.donasRecolectadas++;
+      } else {
+          GameState.player2.donasRecolectadas++;
+      }
       // ============================
       const p1 = GameState.player1.donasRecolectadas;
       const p2 = GameState.player2.donasRecolectadas;

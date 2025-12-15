@@ -54,6 +54,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
+    //maquina de estados simple (implicita)
+    // El enemigo usa una máquina de estados implícita:
+    // patrulla por defecto, ataca si detecta al jugador,
+    // recibe daño al ser golpeado y queda inactivo al morir.
+    // Los estados se controlan con flags (isAttacking, isTakingDamage, active).
+
     if (!this.active || this.isAttacking || this.isTakingDamage) return;
 
     // ✅ DETECTAR Y ATACAR INMEDIATAMENTE
@@ -233,7 +239,7 @@ checkPlayerHit(player) {
     return false;
   }
 
-  die() {
+  die() {//Donde el enemigo muere
 
     // 🔥 DESACTIVAR SOLO EL CUERPO (NO EL SPRITE)
     this.body.enable = false;

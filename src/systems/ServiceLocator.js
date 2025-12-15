@@ -1,3 +1,5 @@
+//Service Locator pattern
+//Acceder a servicios compartidos (ejemplo: DamageSystem, AudioManager, FirebaseService)
 export class ServiceLocator {
   static services = new Map();
 

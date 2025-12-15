@@ -1,5 +1,11 @@
-import Phaser from "phaser";
 
+//Firebase maneja://
+//inicializa Firebase
+// maneja el login (Google, GitHub o anónimo)
+// guarda scores
+// lee el top de scores
+
+import Phaser from "phaser";
 // 📦 Detectamos el modo actual (arcade o production)
 const mode = import.meta.env.VITE_MODE;
 

@@ -1,3 +1,7 @@
+//Escena que aparece cuando un jugador gana
+//Usa GameState para saber si es versus o coop
+// Guarda el score en Firebase
+
 import { Scene } from "phaser";
 import { GameState } from "../state/GameState.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";

@@ -1,3 +1,5 @@
+//Esta es la primera pantalla y uso 
+// las traducciones para mostrar el texto según el idioma.
 import { Scene } from "phaser";
 import Background from "../../classes/Background.js";
 import InputSystem, { INPUT_ACTIONS } from "../utils/InputSystem.js";
@@ -11,7 +13,7 @@ export class MainMenu extends Scene {
   }
 
   create() {
-    // === MÚSICA DEL MENÚ — SINGLETON ===
+    // === MÚSICA DEL MENÚ — SINGLETON de Audio manager===
     if (!this.sound.get("menu")) {
       this.menuMusic = this.sound.add("menu", {
         volume: 0.3,

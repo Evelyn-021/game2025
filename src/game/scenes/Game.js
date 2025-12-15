@@ -1,3 +1,8 @@
+
+
+// Escena principal del juego: 
+// crea el nivel y coordina sistemas (input, audio, daño y flujo).
+//Eventos de daño, donas, victoria
 import { Scene } from "phaser";
 import Player from "../../classes/player.js";
 import { GameState } from "../state/GameState.js";
@@ -94,6 +99,8 @@ if (music) {
     this.audioManager.setMusicVolume(0.50);
     this.damageSystem = new DamageSystem(this, this.audioManager);
 
+
+    // Registrar servicios en el Service Locator
     ServiceLocator.register("audio", this.audioManager);
     ServiceLocator.register("damage", this.damageSystem);
 
@@ -136,6 +143,7 @@ if (music) {
     // 🔄 INICIALIZAR PROPIEDAD DE WRAP
     this.player1.isWrapping = false;
     this.player2.isWrapping = false;
+
     // === COMBOS ===
     this.combo1 = new Combo(this, this.player1);
     this.combo2 = new Combo(this, this.player2);
@@ -732,6 +740,7 @@ update() {
   // =========================================================
   this.player1.update();
   this.player2.update();
+  //se actualizan los combos pero sin activarlos
   this.combo1.update();
   this.combo2.update();
 
